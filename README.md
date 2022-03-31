@@ -6,7 +6,7 @@ Companies use systems such as Kafka for data flow patterns, but how best to secu
 ## Example Microservices Scenario
 
 An app based on a user buying something needs to call multiple microservices.\
-Logically the following calls need to take place:
+A microservices based system might do this:
 
 ![Logical Calls](./doc/logical.png)
 
@@ -17,21 +17,21 @@ Some difficult areas exist when dealing with multiple microservices:
 | Reliability | The system should be resilient to temporary unavailability of certain services |
 | Data Integrity | In the event of retries, no duplicate data should be created |
 | Event Security | Event based messages should be received securely, with no man in the middle risks |
-| Message Replay | Messages should be replayable, and patterns such as Event Sourcing should work |
+| Message Replay | Messages should be replayable in the future |
 
 ## Event Based Solutions
 
 Systems such as Kafka provide separation so that each microservice is easier to reason about.\
-All microservices can be updated reliably without the need for distributed transactions:
+Data can flow reliably without the need for distributed transactions:
 
 ![Event Based Calls](./doc/events.png)
 
-The initial call to the Sales API only writes to an event store, which is easy to do transactionally.\
+The initial call to the Sales API only writes to an event store, so it is easy to start processing transactionally.\
 This type of setup also copes with some microservices being temporarily offline.
 
 ## Message Data
 
-Messages will contain a request ID that each microservice can use to prevent duplication:
+To prevent data duplication the original client may send a request ID that flows to each microservice:
 
 ![Request IDs](./doc/request-ids.png)
 
@@ -56,7 +56,7 @@ The demo project could consist of a number of simple operations and in-memory st
 
 The demo APIs should use similar middleware to validate JWTs on both HTTP and event based requests.\
 In both cases a claims principal should be created, and business logic should not care how the API was called.\
-Authorization should take place when messages are consumed, though it is not expected to fail.
+Authorization should take place when messages are consumed, though it is not expected to fail for event messages.
 
 ## Timing
 
@@ -72,6 +72,7 @@ For edge cases the security could perhaps be reduced, without affecting the 99% 
 
 ## Demo Project
 
+Some initial code has been stubbed out, to help us think how the repo should work.\
 Run these commands to build code and spin up the system:
 
 ```bash
@@ -79,7 +80,7 @@ Run these commands to build code and spin up the system:
 ./deploy.sh
 ```
 
-Then call deployed APIs to list data, and data changing commands will trigger events:
+Then call deployed APIs to list data, and future data changing commands will trigger events:
 
 ```bash
 curl http://localhost:3001
