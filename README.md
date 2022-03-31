@@ -58,7 +58,7 @@ The demo project could consist of a number of simple operations and in-memory st
 The demo APIs should use similar middleware to validate JWTs on both HTTP and event based requests.\
 In both cases a claims principal should be created, and business logic should not care how the API was called.\
 Authorization should take place when event messages are consumed, though this is not expected to fail.\
-An overall goal for this repo will be to make the API code look simple.
+The API code from this repo is expected to be very simple, but the design is the hard part.
 
 ## Timing
 
@@ -68,7 +68,7 @@ An overall goal for this repo will be to make the API code look simple.
 - Event sourcing could be used, and all messages replayed a year later
 - Authorization rules could have changed since the initial message
 
-After long delays, JWTs could have expired or message siging keys could have been renewed.\
+During message replays, JWTs could have expired or message signing keys could have been renewed.\
 In some cases retries from the client may be possible, but usually the client will have gone away.\
 For edge cases the security could perhaps be reduced, without affecting the 99% case?
 
