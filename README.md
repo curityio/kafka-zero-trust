@@ -57,7 +57,7 @@ The demo project could consist of a number of simple operations and in-memory st
 
 The demo APIs should use similar middleware to validate JWTs on both HTTP and event based requests.\
 In both cases a claims principal should be created, and business logic should not care how the API was called.\
-Authorization should take place when messages are consumed, though it is not expected to fail for event messages.\
+Authorization should take place when event messages are consumed, though this is not expected to fail.\
 An overall goal for this repo will be to make the API code look simple.
 
 ## Timing
