@@ -17,8 +17,6 @@ services:
       - zookeeper_data:/bitnami
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
-    profiles:
-      - NONE
 
   #
   # The main Kafka system
@@ -34,8 +32,21 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
     depends_on:
       - zookeeper
-    profiles:
-      - NONE
+
+  #
+  # The Curity Identity Server
+  #
+  curity-idsvr:
+    image: curity.azurecr.io/curity/idsvr:7.0
+    ports:
+     - 6749:6749
+     - 8443:8443
+    volumes:
+     #- ./license.json:/opt/idsvr/etc/init/license/license.json
+     #- ./config-backup.xml:/opt/idsvr/etc/init/config.xml
+     - ./idsvr/log4j2.xml:/opt/idsvr/etc/log4j2.xml
+    environment:
+      PASSWORD: 'Password1'
 
   #
   # The entry point API that saves to Kafka

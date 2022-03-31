@@ -1,0 +1,1 @@
+Add identity server resources here, as for other repos
