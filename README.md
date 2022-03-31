@@ -27,8 +27,7 @@ Data can flow reliably without the need for distributed transactions:
 ![Event Based Calls](./doc/events.png)
 
 The initial call to the Sales API only writes to an event store, so it is easy to start processing transactionally.\
-This type of setup also copes with some microservices being temporarily offline.\
-An overall goal for this repo will be to make the microservices code look simple.
+This type of setup also copes with some microservices being temporarily offline.
 
 ## Message Data
 
@@ -57,7 +56,8 @@ The demo project could consist of a number of simple operations and in-memory st
 
 The demo APIs should use similar middleware to validate JWTs on both HTTP and event based requests.\
 In both cases a claims principal should be created, and business logic should not care how the API was called.\
-Authorization should take place when messages are consumed, though it is not expected to fail for event messages.
+Authorization should take place when messages are consumed, though it is not expected to fail for event messages.\
+An overall goal for this repo will be to make the API code look simple.
 
 ## Timing
 
