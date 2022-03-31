@@ -13,3 +13,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # Run the Docker Compose network
 #
 docker compose -p kafka up
+
+#
+# Wait for Kafka to come up, then create topics
+#
