@@ -31,7 +31,8 @@ This type of setup also copes with some microservices being temporarily offline.
 
 ## Message Data
 
-To prevent data duplication the original client may send a request ID that flows to each microservice:
+To prevent data duplication the original client may send a request ID that flows to each microservice.\
+Each API could then check for this request ID in existing data with fairly simple code.
 
 ![Request IDs](./doc/request-ids.png)
 
