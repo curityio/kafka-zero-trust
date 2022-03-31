@@ -1,0 +1,6 @@
+1. Get all APIs running
+   Update to Express and add the KafkaJS dependency
+
+2. Stub out creating topics in a bash script via a command in the Kafka Docker container
+
+3. Check in and send round an email
