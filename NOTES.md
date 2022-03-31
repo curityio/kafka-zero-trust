@@ -17,35 +17,7 @@ I need to better understand how [listener connections](https://rmoff.net/2018/08
 
 See if we are happy with my scenario and deliverable, or make adjustments.
 
-<<<<<<< HEAD:NOTES.md
 ## MESSAGE DESIGN
-=======
-**ARTICULATE THREATS**
-
-In some ways a system like Kafka is a trusted database.\
-We should understand whether a consuming connection can be abused.\
-Could an attacker inside the network pass in messages to a TCP port in the API?\
-However, it looks like APIs make just an outbound connection like this:
-
-```javascript
-const kafka = new Kafka({
-  clientId: 'my-app',
-  brokers: ['kafka1:9092', 'kafka2:9092'],
-  sasl: {
-    mechanism: 'plain',
-    username: 'my-username',
-    password: 'my-password'
-  },
-});
-
-const consumer = kafka.consumer({ groupId: 'test-group' });
-await consumer.connect();
-await consumer.subscribe({ topic: 'test-topic', fromBeginning: true });
-await consumer.run( ... );
-```
-
-**MESSAGE DESIGN**
->>>>>>> 0aea699e2e17e18f9adb91f534ed8e528d5970db:TODO.md
 
 Design event messages, eg where the user has purchased a number of items.\
 Messages might contain a signature over the URL / method / payload / date?\
