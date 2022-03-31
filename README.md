@@ -70,7 +70,7 @@ The API code from this repo is expected to be very simple, but the design is the
 
 During message replays, JWTs could have expired or message signing keys could have been renewed.\
 In some cases retries from the client may be possible, but usually the client will have gone away.\
-For edge cases the security could perhaps be reduced, without affecting the 99% case?
+For edge cases the expiry checks could perhaps be ignored as an optimization, without affecting the 99% case?
 
 ## Demo Project
 
