@@ -1,7 +1,8 @@
 # Kafka Zero Trust
 
 A demo project for exploring a more complete zero trust picture.\
-Companies use systems such as Kafka for data flow patterns, but how best to secure those messages?
+Companies use systems such as Kafka for data flow patterns.\
+Is this an extra attack vector, and if so how should we secure messages?
 
 ## Example Microservices Scenario
 
@@ -36,9 +37,9 @@ Each API could then check for this request ID in existing data with fairly simpl
 
 ![Request IDs](./doc/request-ids.png)
 
-Messages should also be digitally signed so that they cannot be tampered with by a man in the middle.\
-Messages should also be able to convey a JWT digital identity containing scopes and claims.\
-Messages should have a version to enable APIs to apply different policies over time.
+Messages could be digitally signed so that they cannot be tampered with by a man in the middle.\
+Messages could also convey a JWT digital identity containing scopes and claims.\
+Messages could have a version to enable APIs to apply different policies over time.
 
 ## API Behavior
 
@@ -83,11 +84,17 @@ For now, run these commands to build code and spin up the system:
 ./deploy.sh
 ```
 
-Then call deployed APIs to list data, and future data changing commands will trigger events:
+Then call deployed APIs to get data:
 
 ```bash
 curl http://localhost:3001
 curl http://localhost:3002
 curl http://localhost:3003
 curl http://localhost:3004
+```
+
+Create an order with this command:
+
+```bash
+curl -X POST http://localhost:3001
 ```

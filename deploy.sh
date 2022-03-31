@@ -10,10 +10,6 @@
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 #
-# Run the Docker Compose network
+# Run the Docker Compose network and clear volumes etc first
 #
-docker compose -p kafka up
-
-#
-# Wait for Kafka to come up, then create topics
-#
+docker compose rm -svf && docker compose -p kafka up
