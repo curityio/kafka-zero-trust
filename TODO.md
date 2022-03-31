@@ -2,6 +2,30 @@
 
 See if we are happy with my scenario and deliverable, or make adjustments.
 
+**ARTICULATE THREATS**
+
+In some ways a system like Kafka is a trusted database.\
+We should understand whether a consuming connection can be abused.\
+Could an attacker inside the network pass in messages to a TCP port in the API?\
+However, it looks like APIs make just an outbound connection like this:
+
+```javascript
+const kafka = new Kafka({
+  clientId: 'my-app',
+  brokers: ['kafka1:9092', 'kafka2:9092'],
+  sasl: {
+    mechanism: 'plain',
+    username: 'my-username',
+    password: 'my-password'
+  },
+});
+
+const consumer = kafka.consumer({ groupId: 'test-group' });
+await consumer.connect();
+await consumer.subscribe({ topic: 'test-topic', fromBeginning: true });
+await consumer.run( ... );
+```
+
 **MESSAGE DESIGN**
 
 Design event messages, eg where the user has purchased a number of items.\
