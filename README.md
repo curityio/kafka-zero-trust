@@ -70,12 +70,13 @@ The API code from this repo is expected to be very simple, but the design is the
 
 During message replays, JWTs could have expired or message signing keys could have been renewed.\
 In some cases retries from the client may be possible, but usually the client will have gone away.\
-For edge cases the expiry checks could perhaps be ignored as an optimization, without affecting the 99% case?
+For some edge cases, expiry errors could perhaps be ignored, without affecting the 99% behavior?
 
 ## Demo Project
 
-Some initial code has been stubbed out, to help us think how the repo should work.\
-Run these commands to build code and spin up the system:
+Some initial code has been stubbed out, to help us think how an end-to-end solution could look.\
+If we are agreed on the direction we could do more work, and reflect edge case behavior in code.\
+For now, run these commands to build code and spin up the system:
 
 ```bash
 ./build.sh
