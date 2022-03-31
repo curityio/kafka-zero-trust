@@ -27,7 +27,8 @@ Data can flow reliably without the need for distributed transactions:
 ![Event Based Calls](./doc/events.png)
 
 The initial call to the Sales API only writes to an event store, so it is easy to start processing transactionally.\
-This type of setup also copes with some microservices being temporarily offline.
+This type of setup also copes with some microservices being temporarily offline.\
+An overall goal for this repo will be to make the microservices code look simple.
 
 ## Message Data
 
