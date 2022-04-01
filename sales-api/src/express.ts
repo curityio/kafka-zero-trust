@@ -29,7 +29,7 @@ export function run_express(orders: Order[], kafka: Kafka) {
         const order = {
             id: '1234',
         };
-        
+
         const producer = kafka.producer();
         await producer.connect();
         await producer.send({

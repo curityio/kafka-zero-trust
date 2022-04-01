@@ -4,7 +4,7 @@
     "description": "A Node.js API called via both HTTP and events",
     "scripts": {
         "build": "rm -rf dist && tsc",
-        "start": "ts-node --files src/index.ts"
+        "start": "IS_LOCAL=true ts-node --files src/index.ts"
     },
     "author": "Curity AB",
     "license": "Apache-2.0",

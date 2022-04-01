@@ -14,7 +14,7 @@ services:
     hostname: zookeeper
     container_name: zookeeper
     ports:
-      - "2181:2181"
+      - "22181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -22,23 +22,28 @@ services:
   #
   # The main Kafka system
   #
-  broker:
+  kafka:
     image: confluentinc/cp-server:5.5.8
-    hostname: broker
-    container_name: broker
+    hostname: kafka
+    container_name: kafka
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
+      - "29092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--list", "--zookeeper", "zookeeper:2181"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
 
   #
   # Manages Kafka schemas for event messages
@@ -49,7 +54,7 @@ services:
     container_name: schema-registry
     depends_on:
       - zookeeper
-      - broker
+      - kafka
     ports:
       - "8081:8081"
     environment:
@@ -65,7 +70,7 @@ services:
     hostname: create-topics
     container_name: create-topics
     command: "
-      bash -c 'cub kafka-ready -b broker:29092 1 120 && \
+      bash -c 'cub kafka-ready -b kafka:9092 1 120 && \
                kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic OrderCreated' &&
                kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic OrderProcessed'"
     environment:
@@ -95,8 +100,10 @@ services:
     hostname: salesapi
     ports:
       - 3001:3001
-    environment:
-      WAIT_HOSTS: zookeeper:2181, broker:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
     
   #
   # The orders API which both consumes and produces events
@@ -106,8 +113,9 @@ services:
     hostname: ordersapi
     ports:
       - 3002:3002
-    environment:
-      WAIT_HOSTS: zookeeper:2181, broker:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
 
   #
   # The invoicing API which consumes events
@@ -117,8 +125,9 @@ services:
     hostname: invoicingapi
     ports:
       - 3003:3003
-    environment:
-      WAIT_HOSTS: zookeeper:2181, broker:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
 
   #
   # The shipping API which consumes events
@@ -128,5 +137,13 @@ services:
     hostname: shippingapi
     ports:
       - 3004:3004
-    environment:
-      WAIT_HOSTS: zookeeper:2181, broker:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  #
+  # Also deploy a troubleshooting container from which we can run curl requests to other containers
+  #
+  util:
+    image: wbitt/network-multitool
+    hostname: multitool
