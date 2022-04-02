@@ -1,12 +1,13 @@
 import express from 'express';
-import {Kafka} from 'kafkajs';
+import {Guid} from 'guid-typescript';
 import process from 'process';
+import Kafka from 'node-rdkafka';
 import {Order} from './order';
 
 /*
  * The HTTP entry point
  */
-export function run_express(orders: Order[], kafka: Kafka) {
+export function run_express(orders: Order[], producer: Kafka.Producer) {
 
     const app = express();
     app.set('etag', false);
@@ -27,21 +28,17 @@ export function run_express(orders: Order[], kafka: Kafka) {
     app.post('/', async (request: express.Request, response: express.Response) => {
 
         const order = {
-            id: '1234',
+            id: Guid.create().toString(),
         };
 
-        const producer = kafka.producer();
-        await producer.connect();
-        await producer.send({
-            topic: 'OrderCreated',
-            messages: [
-              {value: JSON.stringify(order)},
-            ],
-        });
-        await producer.disconnect();
-        orders.push(order);
-        
+        const orderRaw = JSON.stringify(order);
+        producer.produce('OrderCreated', null, Buffer.from(orderRaw));
         console.log('Sales API sent an OrderCreated event');
+        
+        // Add to the API's own data
+        orders.push(order);
+
+        // Return the HTTP response
         response.setHeader('content-type', 'application/json');
         response.status(200).send(JSON.stringify(orders));
     });

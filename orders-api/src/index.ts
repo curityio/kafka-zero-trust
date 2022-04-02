@@ -5,6 +5,6 @@ import {Order} from './order';
 (async () => {
 
     const orders: Order[] = [];
-    const kafka = await run_kafka(orders);
-    run_express(orders, kafka);
+    await run_kafka(orders);
+    run_express(orders);
 })();

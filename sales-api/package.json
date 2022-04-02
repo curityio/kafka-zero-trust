@@ -15,6 +15,7 @@
     },
     "dependencies": {
         "express": "^4.17.3",
-        "kafkajs": "^1.16.0"
+        "guid-typescript": "^1.0.9",
+        "node-rdkafka": "^2.12.0"
     }
 }

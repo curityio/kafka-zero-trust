@@ -91,6 +91,8 @@ services:
      - ./idsvr/log4j2.xml:/opt/idsvr/etc/log4j2.xml
     environment:
       PASSWORD: 'Password1'
+    profiles:
+     - NONE
 
   #
   # The entry point API that saves to Kafka
@@ -103,7 +105,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-
+    profiles:
+     - DEPLOYED
     
   #
   # The orders API which both consumes and produces events
@@ -116,6 +119,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    profiles:
+     - DEPLOYED
 
   #
   # The invoicing API which consumes events
@@ -128,6 +133,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    profiles:
+     - NONE
 
   #
   # The shipping API which consumes events
@@ -140,9 +147,11 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    profiles:
+     - NONE
 
   #
-  # Also deploy a troubleshooting container from which we can run curl requests to other containers
+  # Also deploy a container with networking tools, for troubleshooting
   #
   util:
     image: wbitt/network-multitool

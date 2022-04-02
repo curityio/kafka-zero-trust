@@ -1,12 +1,11 @@
 import express from 'express';
-import {Kafka} from 'kafkajs';
 import process from 'process';
 import {Order} from './order';
 
 /*
  * The HTTP entry point
  */
-export function run_express(orders: Order[], kafka: Kafka) {
+export function run_express(orders: Order[]) {
 
     const app = express();
     app.set('etag', false);
