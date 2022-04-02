@@ -10,6 +10,15 @@
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 #
+# Set to LOCAL when running APIs locally, or to DEPLOYED otherwise
+#
+if [ "$1" == 'DEPLOYED' ]; then
+  PROFILE='DEPLOYED'
+else
+  PROFILE='LOCAL'
+fi
+
+#
 # Build the Sales API
 #
 cd sales-api
@@ -25,10 +34,12 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-docker build -t sales-api:1.0.0 .
-if [ $? -ne 0 ]; then
-  echo "Problem encountered building the Sales API Docker image"
-  exit 1
+if [ "$PROFILE" == 'DEPLOYED' ]; then
+  docker build -t sales-api:1.0.0 .
+  if [ $? -ne 0 ]; then
+    echo "Problem encountered building the Sales API Docker image"
+    exit 1
+  fi
 fi
 cd ..
 
@@ -48,10 +59,12 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-docker build -t orders-api:1.0.0 .
-if [ $? -ne 0 ]; then
-  echo "Problem encountered building the Orders API Docker image"
-  exit 1
+if [ "$PROFILE" == 'DEPLOYED' ]; then
+  docker build -t orders-api:1.0.0 .
+  if [ $? -ne 0 ]; then
+    echo "Problem encountered building the Orders API Docker image"
+    exit 1
+  fi
 fi
 cd ..
 
@@ -71,10 +84,12 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-docker build -t invoicing-api:1.0.0 .
-if [ $? -ne 0 ]; then
-  echo "Problem encountered building the Invoicing API Docker image"
-  exit 1
+if [ "$PROFILE" == 'DEPLOYED' ]; then
+  docker build -t invoicing-api:1.0.0 .
+  if [ $? -ne 0 ]; then
+    echo "Problem encountered building the Invoicing API Docker image"
+    exit 1
+  fi
 fi
 cd ..
 
@@ -94,9 +109,11 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-docker build -t shipping-api:1.0.0 .
-if [ $? -ne 0 ]; then
-  echo "Problem encountered building the Shipping API Docker image"
-  exit 1
+if [ "$PROFILE" == 'DEPLOYED' ]; then
+  docker build -t shipping-api:1.0.0 .
+  if [ $? -ne 0 ]; then
+    echo "Problem encountered building the Shipping API Docker image"
+    exit 1
+  fi
 fi
 cd ..

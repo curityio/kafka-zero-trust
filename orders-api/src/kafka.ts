@@ -7,6 +7,7 @@ import {Order} from './order';
 export async function run_kafka(orders: Order[]): Promise<void> {
 
     const host = process.env.IS_LOCAL ? 'localhost:29092' : 'kafka:9092';
+    console.log('Orders API is connecting to Kafka');
     
     var consumer = new Kafka.KafkaConsumer({
         'group.id': 'kafka-demo',

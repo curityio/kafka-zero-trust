@@ -7,6 +7,7 @@ import {Order} from './order';
 export async function run_kafka(orders: Order[]): Promise<Kafka.Producer> {
 
     const host = process.env.IS_LOCAL ? 'localhost:29092' : 'kafka:9092';
+    console.log('Sales API is connecting to Kafka');
     
     const producer = new Kafka.Producer({
         'metadata.broker.list': host
