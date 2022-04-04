@@ -7,20 +7,18 @@ import {Order} from './order';
 export async function run_kafka(orders: Order[]): Promise<void> {
 
     const host = process.env.IS_LOCAL ? 'localhost:29092' : 'kafka:9092';
-    console.log('Shipping API is connecting to Kafka');
-    
-    // clientId: 'shipping-api',
 
-    var consumer = new Kafka.KafkaConsumer({
-        'group.id': 'kafka-demo',
-        'metadata.broker.list': host
+    // Set up the consumer of OrderCreated events
+    const consumer = new Kafka.KafkaConsumer({
+        'group.id': 'shipping-api-consumer',
+        'client.id': 'shipping-api-consumer',
+        'metadata.broker.list': host,
+        event_cb: true,
       }, {});
-    await connect_async(consumer, undefined);
-    console.log('Shipping API consumer is connected');
-
     consumer
         .on('ready', () => {
 
+            console.log('Shipping API Consumer is ready');
             consumer.subscribe(['OrderProcessed']);
             consumer.consume();
         })
@@ -33,7 +31,13 @@ export async function run_kafka(orders: Order[]): Promise<void> {
 
             // Add to the API's own data
             orders.push(order);
+            
+        })
+        .on('event.error', (err) => {
+            console.log('Shipping API Consumer Error');
+            console.log(err);
         });
+    await connect_async(consumer);
 }
 
 /*
@@ -41,7 +45,7 @@ export async function run_kafka(orders: Order[]): Promise<void> {
  */
 async function connect_async(
     client: Kafka.Client<any>,
-    optionsParam: Kafka.MetadataOptions | undefined): Promise<Kafka.Metadata> {
+    optionsParam: Kafka.MetadataOptions | undefined = undefined): Promise<Kafka.Metadata> {
 
     const options = optionsParam || {timeout: 5000};
     return new Promise((resolve, reject) => {

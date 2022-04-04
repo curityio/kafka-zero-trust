@@ -12,16 +12,18 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 #
 # Set to LOCAL when running APIs locally, or to DEPLOYED otherwise
 #
-if [ "$1" == 'DEPLOYED' ]; then
-  PROFILE='DEPLOYED'
-else
+if [ "$1" == 'LOCAL' ]; then
   PROFILE='LOCAL'
+else
+  PROFILE='DEPLOYED'
 fi
 
 #
 # Run the Docker Compose network and clear volumes etc first
 #
-docker compose rm -svf && docker compose --profile $PROFILE --project-name kakfa up --detach --remove-orphans
+docker compose --project-name kakfa down && \
+docker compose rm -svf && \
+docker compose --profile $PROFILE --project-name kakfa up --detach --remove-orphans
 
 #
 # Run local APIs if required
@@ -29,10 +31,23 @@ docker compose rm -svf && docker compose --profile $PROFILE --project-name kakfa
 if [ "$PROFILE" == 'LOCAL' ]; then
     
     #
-    # Wait for Kafka in a basic way
+    # Wait for Kafka to come online
     #
-    echo 'Waiting for Kafak to come online'
-    sleep 30
+    echo 'Waiting for Kafka to come online ...'
+    KAFKA_CONTAINER_ID=$(docker container ls | grep cp-server | awk '{print $1}')
+    docker exec -it $KAFKA_CONTAINER_ID sh -c 'kafka-topics --list --zookeeper zookeeper:2181'
+    RESULT=$?
+    while [ "$RESULT" -ne '0' ]; do
+        sleep 2
+        KAFKA_CONTAINER_ID=$(docker container ls | grep cp-server | awk '{print $1}')
+        docker exec -it $KAFKA_CONTAINER_ID sh -c 'kafka-topics --list --zookeeper zookeeper:2181'
+        RESULT=$?
+    done
+    
+    #
+    # I still get some init errors so also wait for a short time
+    #
+    sleep 5
 
     #
     # Then run the APIs

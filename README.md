@@ -37,6 +37,8 @@ Each API could then check for this request ID in existing data with fairly simpl
 
 ![Request IDs](./doc/request-ids.png)
 
+## Security
+
 Messages could be digitally signed so that they cannot be tampered with by a man in the middle.\
 Messages could also convey a JWT digital identity containing scopes and claims.\
 Messages could have a version to enable APIs to apply different policies over time.
@@ -61,7 +63,7 @@ In both cases a claims principal should be created, and business logic should no
 Authorization should take place when event messages are consumed, though this is not expected to fail.\
 The API code from this repo is expected to be very simple, but the design is the hard part.
 
-## Timing
+## JWTs and Timing
 
 99% of messages are processed immediately, though there are some 1% exceptions that need to be dealt with:
 
@@ -73,11 +75,14 @@ During message replays, JWTs could have expired or message signing keys could ha
 In some cases retries from the client may be possible, but usually the client will have gone away.\
 For some edge cases, expiry errors could perhaps be ignored, without affecting the 99% behavior?
 
-## Demo Project
+## Initial Demo Project
 
 Some initial code has been stubbed out, to help us think how an end-to-end solution could look.\
-If we are agreed on the direction we could do more work, and reflect edge case behavior in code.\
-For now, run these commands to build code and spin up the system:
+If we are agreed on the direction we could do more work, and reflect edge case behavior in code.
+
+## Running a Kafka Network
+
+Run these commands to build code and spin up a deployed system:
 
 ```bash
 ./build.sh
@@ -97,4 +102,13 @@ Create an order with this command:
 
 ```bash
 curl -X POST http://localhost:3001
+```
+
+## Running APIs Locally
+
+To run Kafka in Docker compose but to develop APIs locally, use these commands:
+
+```bash
+./build.sh  LOCALAPI
+./deploy.sh LOCALAPI
 ```

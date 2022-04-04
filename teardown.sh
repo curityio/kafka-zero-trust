@@ -12,4 +12,4 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 #
 # Tear down the Docker Compose network
 #
-docker compose -p kafka down
+docker compose --project-name kakfa down

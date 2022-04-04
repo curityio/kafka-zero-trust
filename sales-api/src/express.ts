@@ -33,7 +33,7 @@ export function run_express(orders: Order[], producer: Kafka.Producer) {
 
         const orderRaw = JSON.stringify(order);
         producer.produce('OrderCreated', null, Buffer.from(orderRaw));
-        console.log('Sales API sent an OrderCreated event');
+        console.log(`Sales API produced an OrderCreated event: ${orderRaw}`);
         
         // Add to the API's own data
         orders.push(order);

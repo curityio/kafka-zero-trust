@@ -12,10 +12,10 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 #
 # Set to LOCAL when running APIs locally, or to DEPLOYED otherwise
 #
-if [ "$1" == 'DEPLOYED' ]; then
-  PROFILE='DEPLOYED'
-else
+if [ "$1" == 'LOCAL' ]; then
   PROFILE='LOCAL'
+else
+  PROFILE='DEPLOYED'
 fi
 
 #
