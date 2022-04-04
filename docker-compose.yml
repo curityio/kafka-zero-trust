@@ -73,7 +73,7 @@ services:
     container_name: create-topics
     command: "
       bash -c 'cub kafka-ready -b kafka:9092 1 120 && \
-               kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic OrderCreated' &&
+               kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic OrderCreated &&
                kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic OrderProcessed'"
     environment:
       KAFKA_BROKER_ID: ignored
