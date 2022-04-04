@@ -6,6 +6,9 @@ import Kafka from 'node-rdkafka';
 export async function run_kafka(): Promise<Kafka.Producer> {
 
     const host = process.env.IS_LOCAL ? 'localhost:29092' : 'kafka:9092';
+    console.log('Sales API is waiting for Kafka ...');
+    await waitForKafka();
+
     const producer = new Kafka.Producer({
         'metadata.broker.list': host,
         'client.id': 'sales-api-producer',
@@ -42,5 +45,14 @@ async function connect_async(
                 resolve(data);
             }
         });
+    });
+}
+
+/*
+ * I still get some Kafka not ready errors so wait for a short time before connecting
+ */
+async function waitForKafka(): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, 5000);
     });
 }

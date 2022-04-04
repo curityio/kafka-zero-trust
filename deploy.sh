@@ -45,11 +45,6 @@ if [ "$PROFILE" == 'LOCAL' ]; then
     done
     
     #
-    # I still get some init errors so also wait for a short time
-    #
-    sleep 5
-
-    #
     # Then run the APIs
     #
     open -a Terminal sales-api/run.sh

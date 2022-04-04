@@ -7,6 +7,8 @@ import {Order} from './order';
 export async function run_kafka(orders: Order[]): Promise<void> {
 
     const host = process.env.IS_LOCAL ? 'localhost:29092' : 'kafka:9092';
+    console.log('Invoicing API is waiting for Kafka ...');
+    await waitForKafka();
 
     // Set up the consumer of OrderCreated events
     const consumer = new Kafka.KafkaConsumer({
@@ -58,5 +60,14 @@ async function connect_async(
                 resolve(data);
             }
         });
+    });
+}
+
+/*
+ * I still get some Kafka not ready errors so wait for a short time before connecting
+ */
+async function waitForKafka(): Promise<void> {
+    return new Promise((resolve) => {
+        setTimeout(resolve, 5000);
     });
 }
