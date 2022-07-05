@@ -49,8 +49,8 @@ The demo project could consist of a number of simple operations and in-memory st
 
 | API | Operation | Called Via |
 | --- | --------- | ---------- |
-| Sales | Submit Order | HTTP |
-| Sales | List Submitted Orders | HTTP |
+| Sales | Create Order | HTTP |
+| Sales | List Created Orders | HTTP |
 | Orders | Create Order | Event |
 | Orders | List Orders | HTTP |
 | Invoicing | Create Invoice | Event |

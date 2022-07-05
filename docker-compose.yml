@@ -6,6 +6,39 @@
 version: 3.8'
 services:
 
+#
+  # The Curity Identity Server
+  #
+  curity-idsvr:
+    image: curity.azurecr.io/curity/idsvr:7.2.0
+    hostname: curityserver
+    ports:
+     - 6749:6749
+     - 8443:8443
+    volumes:
+     - ./idsvr/license.json:/opt/idsvr/etc/init/license/license.json
+     - ./idsvr/config-backup.xml:/opt/idsvr/etc/init/config.xml
+     - ./idsvr/log4j2.xml:/opt/idsvr/etc/log4j2.xml
+    environment:
+      PASSWORD: 'Password1'
+      LOGGING_LEVEL: 'DEBUG'
+
+  #
+  # A SQL database used by the Curity Identity Server
+  #
+  curity-data:
+    image: postgres:13.2
+    hostname: dbserver
+    ports:
+     - 5432:5432
+    volumes:
+      - ./idsvr/data:/var/lib/postgresql/data
+      - ./idsvr/data-backup.sql:/docker-entrypoint-initdb.d/data-backup.sql
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'Password1'
+      POSTGRES_DB: 'idsvr'
+
   #
   # Manages Kafka clustering
   #
@@ -73,35 +106,17 @@ services:
     container_name: create-topics
     command: "
       bash -c 'cub kafka-ready -b kafka:9092 1 120 && \
-               kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic OrderCreated &&
-               kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic OrderProcessed'"
+               kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic OrderCreated'"
     environment:
       KAFKA_BROKER_ID: ignored
       KAFKA_ZOOKEEPER_CONNECT: ignored
 
   #
-  # The Curity Identity Server
+  # The orders API, which publishes events with a verifiable JWT identity
   #
-  curity-idsvr:
-    image: curity.azurecr.io/curity/idsvr:7.0
-    ports:
-     - 6749:6749
-     - 8443:8443
-    volumes:
-     #- ./license.json:/opt/idsvr/etc/init/license/license.json
-     #- ./config-backup.xml:/opt/idsvr/etc/init/config.xml
-     - ./idsvr/log4j2.xml:/opt/idsvr/etc/log4j2.xml
-    environment:
-      PASSWORD: 'Password1'
-    profiles:
-     - NONE
-
-  #
-  # The entry point API that saves to Kafka
-  #
-  sales-api:
-    image: sales-api:1.0.0
-    hostname: salesapi
+  orders-api:
+    image: orders-api:1.0.0
+    hostname: ordersapi
     ports:
       - 3001:3001
     depends_on:
@@ -111,41 +126,13 @@ services:
      - DEPLOYED
     
   #
-  # The orders API which both consumes and produces events
+  # The payments API, which consumes events with a verifiable JWT identity
   #
-  orders-api:
-    image: orders-api:1.0.0
-    hostname: ordersapi
+  payments-api:
+    image: payments-api:1.0.0
+    hostname: paymentsapi
     ports:
       - 3002:3002
-    depends_on:
-      kafka:
-        condition: service_healthy
-    profiles:
-     - DEPLOYED
-
-  #
-  # The invoicing API which consumes events
-  #
-  invoicing-api:
-    image: invoicing-api:1.0.0
-    hostname: invoicingapi
-    ports:
-      - 3003:3003
-    depends_on:
-      kafka:
-        condition: service_healthy
-    profiles:
-     - DEPLOYED
-
-  #
-  # The shipping API which consumes events
-  #
-  shipping_api:
-    image: shipping-api:1.0.0
-    hostname: shippingapi
-    ports:
-      - 3004:3004
     depends_on:
       kafka:
         condition: service_healthy

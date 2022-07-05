@@ -10,18 +10,18 @@
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 #
-# Set to LOCAL when running APIs locally, or to DEPLOYED otherwise
+# Default to running APIs locally, with Kafka always running in Docker
 #
-if [ "$1" == 'LOCAL' ]; then
-  PROFILE='LOCAL'
-else
+if [ "$1" == 'DEPLOYED' ]; then
   PROFILE='DEPLOYED'
+else
+  PROFILE='LOCAL'
 fi
 
 #
 # Run the Docker Compose network and clear volumes etc first
 #
-docker compose --project-name kakfa down && \
+docker compose --project-name kakfa down &&
 docker compose rm -svf && \
 docker compose --profile $PROFILE --project-name kakfa up --detach --remove-orphans
 
@@ -47,10 +47,8 @@ if [ "$PROFILE" == 'LOCAL' ]; then
     #
     # Then run the APIs
     #
-    open -a Terminal sales-api/run.sh
     open -a Terminal orders-api/run.sh
-    open -a Terminal invoicing-api/run.sh
-    open -a Terminal shipping-api/run.sh
+    open -a Terminal payments-api/run.sh
 fi
 
 

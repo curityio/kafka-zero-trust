@@ -1,10 +1,8 @@
-import {run_express} from './express';
-import {run_kafka} from './kafka';
-import {Order} from './order';
+import {startHttpServer} from './infrastructure/httpServer';
+import {startMessageBroker} from './infrastructure/messageBroker';
 
 (async () => {
 
-    const orders: Order[] = [];
-    await run_kafka(orders);
-    run_express(orders);
+    const producer = await startMessageBroker();
+    startHttpServer(producer);
 })();
