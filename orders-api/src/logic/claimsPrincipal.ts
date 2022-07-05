@@ -3,5 +3,5 @@
  */
 export interface ClaimsPrincipal {
     userID: string;
-    scope: string;
+    scope: string[];
 }

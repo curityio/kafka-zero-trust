@@ -6,6 +6,7 @@
 ########################################################################################
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
+set -e
 
 #
 # Point to remote systems
@@ -23,7 +24,7 @@ UI_OPAQUE_TOKEN=$(curl -s -X POST $IDENTITY_SERVER_URL/oauth/v2/oauth-token \
     -d "client_id=console-client" \
     -d "client_secret=Password1" \
     -d "grant_type=client_credentials" \
-    -d "scope=orders payments" | jq -r .access_token)
+    -d "scope=orders payments shipping" | jq -r .access_token)
 
 UI_JWT_TOKEN=$(curl -k -s -X POST $IDENTITY_SERVER_URL/oauth/v2/oauth-introspect \
     -u "introspect-client:Password1" \
@@ -38,7 +39,7 @@ echo 'Calling Orders API to create an order ...'
 ORDER_TRANSACTION=$(curl -s -X POST $ORDERS_API_BASE_URL \
 -H "content-type: application/json" \
 -H "accept: application/json" \
--H "authorization: Bearer $UI_JWT_TOKEN" \
+-H "Authorization: Bearer $UI_JWT_TOKEN" \
 -d @defaultOrder.json)
 
 #

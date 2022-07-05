@@ -16,6 +16,8 @@
     "dependencies": {
         "express": "^4.17.3",
         "guid-typescript": "^1.0.9",
+        "jose": "^4.8.3",
+        "js-sha256": "^0.9.0",
         "node-rdkafka": "^2.12.0"
     }
 }

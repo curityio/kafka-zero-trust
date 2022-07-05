@@ -15,8 +15,8 @@ export function createPaymentTransaction(event: OrderCreatedEvent, claims: Claim
     authorizePayment(event, claims);
 
     const paymentTransaction = {
-        paymentID: Guid.create().toString(),
-        orderID: claims.transactionID!,
+        paymentTransactionID: Guid.create().toString(),
+        orderTransactionID: claims.orderTransactionID!,
         userID: claims.userID,
         utcTime: new Date(),
         amount: calculateAmount(event.payload.items),

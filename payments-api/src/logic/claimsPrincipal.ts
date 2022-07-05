@@ -3,7 +3,7 @@
  */
 export interface ClaimsPrincipal {
     userID: string;
-    scope: string;
-    transactionID?: string;
-    request_content_hash?: string;
+    scope: string[];
+    orderTransactionID?: string;
+    requestContentHash?: string;
 }

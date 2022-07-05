@@ -17,7 +17,7 @@ export function startHttpServer() {
      */
     app.get('/', (request: express.Request, response: express.Response) => {
 
-        console.log('Payments API returned a list of transactions ...');
+        console.log('Payments API returned a list of Payment Transactions ...');
         response.setHeader('content-type', 'application/json');
 
         const transactions = getPaymentTransactions();

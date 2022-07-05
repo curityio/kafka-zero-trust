@@ -19,6 +19,11 @@ else
 fi
 
 #
+# This is for Curity developers only
+#
+cp ./hooks/pre-commit ./.git/hooks
+
+#
 # Run the Docker Compose network and clear volumes etc first
 #
 docker compose --project-name kakfa down &&
@@ -47,8 +52,8 @@ if [ "$PROFILE" == 'LOCAL' ]; then
     #
     # Then run the APIs
     #
-    open -a Terminal orders-api/run.sh
-    open -a Terminal payments-api/run.sh
+    #open -a Terminal orders-api/run.sh
+    #open -a Terminal payments-api/run.sh
 fi
 
 

@@ -1,6 +1,8 @@
 import Kafka from 'node-rdkafka';
 import {authorize} from './authorizer';
 import {createPaymentTransaction} from '../logic/paymentsService';
+import {logError} from './exceptionHandler';
+import {PaymentServiceError} from './paymentServiceError';
 
 /*
  * Set up the message broker ready for consuming
@@ -24,18 +26,29 @@ export async function startMessageBroker(): Promise<void> {
             consumer.subscribe(['OrderCreated']);
             consumer.consume();
         })
-        .on('data', (message: any) => {
+        .on('data', async (message: any) => {
 
             const orderEvent = JSON.parse(message.value.toString());
-            console.log(`Payments API consumed an OrderCreated event ...`);
+            console.log(`Payments API is consuming an OrderCreated event ...`);
 
-            const claims = authorize(orderEvent.accessToken);
-            createPaymentTransaction(orderEvent, claims);
+            try {
+                // Try the authorization
+                const claims = await authorize(orderEvent.accessToken);
+
+                // Then process the payment
+                createPaymentTransaction(orderEvent, claims);
+
+            } catch (e: any) {
+
+                // This code example logs the details and removes the message from the queue
+                const error = e as PaymentServiceError;
+                logError(error);
+            }
         })
-        .on('event.error', (err) => {
+        .on('event.error', (e) => {
 
-            console.log('Payments API Consumer Error ...');
-            console.log(err);
+            const error = new PaymentServiceError(500, 'event_error', 'A problem was encountered with the message broker', e);
+            logError(error);
         });
     await connect_async(consumer);
 }

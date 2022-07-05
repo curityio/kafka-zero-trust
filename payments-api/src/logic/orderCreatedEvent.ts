@@ -6,7 +6,7 @@ import {OrderCreatedEventItem} from './orderCreatedEventItem';
 export interface OrderCreatedEvent {
     accessToken: string;
     payload: {
-        transactionID: string;
+        orderTransactionID: string;
         utcTime: number;
         items: OrderCreatedEventItem[];
     }

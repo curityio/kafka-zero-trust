@@ -1,4 +1,6 @@
 import Kafka from 'node-rdkafka';
+import {logError} from './exceptionHandler';
+import {OrderServiceError} from './orderServiceError';
 
 /*
  * Set up the message broker ready for publishing
@@ -19,8 +21,9 @@ export async function startMessageBroker(): Promise<Kafka.Producer> {
             console.log('Orders API Producer is ready ...');
         })
         .on('event.error', function(e: any) {
-            console.log('Orders API Producer error ...');
-            console.log(e);
+            
+            const error = new OrderServiceError(500, 'event_error', 'A problem was encountered with the message broker', e);
+            logError(error);
         });
     await connect(producer);
 
