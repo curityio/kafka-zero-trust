@@ -162,6 +162,23 @@ The user identity has flowed between microservices in a digitally verifiable way
 
 ## Security
 
+The client gets an initial short lived access token with these scopes:
+
+```json
+{
+  "jti": "94d1723c-7200-43f7-b00e-e499d59cbb4b",
+  "delegationId": "9d1b1746-c783-4bf4-b795-47c3b7abf75b",
+  "exp": 1657099978,
+  "nbf": 1657099678,
+  "scope": "orders payments shipping",
+  "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
+  "sub": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
+  "aud": "api.example.com",
+  "iat": 1657099678,
+  "purpose": "access_token"
+}
+```
+
 The Orders API makes a token exchange request to swap the client access token for a longer lived access token.\
 This prevents potential JWT expiry problems in the Payments API and has reduced privileges.
 
@@ -178,7 +195,8 @@ request_content_hash=ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552a
 ```
 
 The Payments API then receives the following JWT access token payload.\
-Before processing the event message, the JWT is verified, before the message is accepted:
+Scopes are reduced and extra claims added for authorization.\
+The Payments API validates the JWT before accepting the message.
 
 ```json
 {
@@ -186,7 +204,7 @@ Before processing the event message, the JWT is verified, before the message is 
   "delegationId": "9d1b1746-c783-4bf4-b795-47c3b7abf75b",
   "exp": 1657099978,
   "nbf": 1657099678,
-  "scope": "shipping payments",
+  "scope": "payments shipping",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
   "sub": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
   "aud": "api.example.com",
@@ -197,7 +215,7 @@ Before processing the event message, the JWT is verified, before the message is 
 }
 ```
 
-The Payments API then verifies that the event message matches the access token.\
+The Payments API also verifies that the event message matches the access token.\
 This ensures that any tampered or malicious event messages are rejected:
 
 - The `order_transaction_id` must match that in the event payload
