@@ -52,7 +52,8 @@ Also get a `license.json` file for the Curity Identity Server and copy it to the
 
 ## Run the Code
 
-Run the following script to run the APIs locally and all other components in a Docker Compose network:
+Run the following script to run the APIs locally and all other components in a Docker Compose network.\
+On the initial run it will take some minutes to download large third party containers:
 
 ```bash
 ./deploy.sh
