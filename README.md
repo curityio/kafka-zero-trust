@@ -8,12 +8,12 @@ The long lived JWT access token is bound to a specific event message.
 ## Example Microservices Scenario
 
 To demonstrate the approach, the code example uses a flow where a user facing app triggers a purchase.\
-This results in a number of logical microservice calls in a microservice workflow:
+This results in a number of logical microservice calls, chained in a workflow:
 
 ![Logical Calls](./doc/logical.png)
 
 Some physical calls may be routed via a message broker such as [Apache Kafka](https://kafka.apache.org/).\
-The code example a method for forwarding a JWT between services via the message broker:
+The code example provides a method for securely forwarding access tokens between services via the message broker:
 
 ![Physical Calls](./doc/physical.png)
 
@@ -41,9 +41,9 @@ The following URLs are used:
 The solution provides two simple Node.js microservices and some deployment resources.\
 First ensure that these prerequisites are installed:
 
-- Docker
-- Node.js
-- jq
+- [Docker](https://www.docker.com/products/docker-desktop/)
+- [Node.js](https://nodejs.org/en/download/)
+- [jq](https://github.com/stedolan/jq)
 
 Also get a `license.json` file for the Curity Identity Server and copy it to the `idsvr` folder:
 
@@ -65,7 +65,7 @@ Or run the following scripts to also deploy the APIs to the Docker Compose netwo
 ./deploy.sh DEPLOYED
 ```
 
-Then run the following script to run a minimal console client:
+Then run a minimal console client:
 
 ```bash
 cd console-client
@@ -73,7 +73,7 @@ npm install
 npm start
 ```
 
-The client will open the system browser and run a code flow, to get a user level token.\
+The client will run a code flow that opens the system browser, to get a user level access token.\
 Sign in as `demouser / Password1` to create an order and trigger event publishing:
 
 ![Login](./doc/login.png)
@@ -163,7 +163,7 @@ The user identity has flowed between microservices in a digitally verifiable way
 ## Security
 
 The Orders API makes a token exchange request to swap the client access token for a longer lived access token.\
-This prevents potential JWT expiry problems in the Payments API and has reduced privileges.\
+This prevents potential JWT expiry problems in the Payments API and has reduced privileges.
 
 ```text
 POST http://localhost:8443/oauth/v2/oauth-token
@@ -178,7 +178,7 @@ request_content_hash=ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552a
 ```
 
 The Payments API then receives the following JWT access token payload.\
-Before processing the event message, the JWT is verified, so that the details are trusted:
+Before processing the event message, the JWT is verified, before the message is accepted:
 
 ```json
 {
@@ -197,15 +197,17 @@ Before processing the event message, the JWT is verified, so that the details ar
 }
 ```
 
-The transactions ID must match that in the event message.\
-The request_content_hash must match the hash of the event payload.\
-This ensures that any tampered or malicious event messages are rejected.
+The Payments API then verifies that the event message matches the access token.\
+This ensures that any tampered or malicious event messages are rejected:
+
+- The `order_transaction_id` must match that in the event payload
+- The `request_content_hash` must match the hash of the event payload
 
 ## Message Replays
 
 If an event message is replayed, then the transaction will already exist in the Payments API.\
-Therefore it will not be reprocessed, so duplicate transactions are avoided.\
-If required, the long lived token in the event message allows data to be recreated via event sourcing.
+Therefore it will not be reprocessed, so duplicate transactions can be avoided.\
+Meanwhile, long lived access tokens in event messages can be used with data flow patterns such as event sourcing.
 
 ## Further Information
 
