@@ -1,15 +1,11 @@
 TOMORROW
 --------
-1. Article
-   Include notes on concepts of extra data in token exchange requests
-   Mention further scopes for downstream microservices
+1. Article draft 1 to complete
+   - Collect open questions here
 
 2. Code polishing
-   
-   - payments scope token must not be usable if it has an order_transaction_id or request_content_hash
-
-   Only make the token procedure apply to the orders-api-client via properties - see Jacob token issuer video
-   Use a long time to live for token
+   - use an 'event=order_created' scope in the exchanged access token
+   - tokens with an event claim not usable in HTTP requests?
 
 3. API gateway
    Do introspection which can route to local computer, then remove introspection from the client bash 
