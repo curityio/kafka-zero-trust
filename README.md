@@ -233,6 +233,6 @@ Meanwhile, long lived access tokens in event messages can be used with data flow
 See the following Curity website resources for further details:
 
 - [Zero Trust API Events Article](https://curity.io/resources/learn/zero-trust-api-events)
-- [Kafka Zero Trust Code Example](https://curity.io/resources/learn/api-using-kafka-zero-trust)
+- [Kafka Zero Trust Code Example](https://curity.io/resources/learn/api-using-zero-trust-events)
 
 Please visit [curity.io](https://curity.io/) for more information about the Curity Identity Server.
