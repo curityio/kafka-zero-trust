@@ -39,8 +39,8 @@ export async function publishOrderCreated(orderTransaction: OrderTransaction, ac
         items: orderTransaction.items,
     };
 
-    const requestContentHash = hash.sha256(JSON.stringify(payload));
-    const longLivedReducedScopeAccessToken = await tokenExchange(accessToken, orderTransaction.orderTransactionID, requestContentHash);
+    const eventPayloadHash = hash.sha256(JSON.stringify(payload));
+    const longLivedReducedScopeAccessToken = await tokenExchange(accessToken, orderTransaction.orderTransactionID, eventPayloadHash);
 
     const orderCreatedEvent = {
         accessToken: longLivedReducedScopeAccessToken,

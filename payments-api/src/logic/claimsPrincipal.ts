@@ -5,5 +5,5 @@ export interface ClaimsPrincipal {
     userID: string;
     scope: string[];
     orderTransactionID?: string;
-    requestContentHash?: string;
+    eventPayloadHash?: string;
 }

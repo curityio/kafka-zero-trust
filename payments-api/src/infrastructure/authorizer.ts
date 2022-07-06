@@ -50,17 +50,13 @@ export async function authorize(accessToken: string): Promise<ClaimsPrincipal> {
         scope: (result.payload.scope as string).split(' '),
     }
 
-    if (claimsPrincipal.scope.indexOf('payments') === -1) {
-        throw new PaymentServiceError(403, 'authorization_error', 'The token has insufficient scope');
-    }
-    
     // Read extended claims into the prinicipal if they exist
     if (result.payload.order_transaction_id) {
         claimsPrincipal.orderTransactionID = result.payload.order_transaction_id as string;
     }
 
-    if (result.payload.request_content_hash) {
-        claimsPrincipal.requestContentHash = result.payload.request_content_hash as string;
+    if (result.payload.event_payload_hash) {
+        claimsPrincipal.eventPayloadHash = result.payload.event_payload_hash as string;
     }
 
     return claimsPrincipal;
@@ -87,9 +83,13 @@ function readAccessToken(request: express.Request): string {
  */
 export function authorizePayment(event: OrderCreatedEvent, claims: ClaimsPrincipal) {
 
+    if (claims.scope.indexOf('trigger_payments') === -1) {
+        throw new PaymentServiceError(403, 'authorization_error', 'The token has insufficient scope');
+    }
+
     // The payload of the event must match that from the access token
-    const requestContentHash = hash.sha256(JSON.stringify(event.payload));
-    if (claims.requestContentHash != requestContentHash) {
+    const eventPayloadHash = hash.sha256(JSON.stringify(event.payload));
+    if (claims.eventPayloadHash != eventPayloadHash) {
         throw new PaymentServiceError(403, 'invalid_event_message', 'The event message contains an unexpected payload');
     }
     

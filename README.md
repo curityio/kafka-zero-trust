@@ -171,7 +171,7 @@ The client gets an initial short lived access token with these scopes:
   "delegationId": "9d1b1746-c783-4bf4-b795-47c3b7abf75b",
   "exp": 1657099978,
   "nbf": 1657099678,
-  "scope": "orders payments shipping",
+  "scope": "orders trigger_payments",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
   "sub": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
   "aud": "api.example.com",
@@ -189,10 +189,11 @@ POST http://localhost:8443/oauth/v2/oauth-token
 grant_type=https://curity.se/grant/accesstoken&
 client_id=orders-api-client&
 client_secret=Password1&
-scope=payments shipping&
+scope=payments&
 token=[client_access_token]&
 order_transaction_id=22fc326d-23e4-5fc3-f803-e989854704e7&
-request_content_hash=ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552ae94ab
+event_name=OrderCreated&
+event_payload_hash=ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552ae94ab
 ```
 
 The Payments API then receives the following JWT access token payload.\
@@ -205,14 +206,15 @@ The Payments API validates the JWT before accepting the message.
   "delegationId": "9d1b1746-c783-4bf4-b795-47c3b7abf75b",
   "exp": 1657099978,
   "nbf": 1657099678,
-  "scope": "payments shipping",
+  "scope": "trigger_payments",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
   "sub": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
   "aud": "api.example.com",
   "iat": 1657099678,
   "purpose": "access_token",
   "order_transaction_id": "22fc326d-23e4-5fc3-f803-e989854704e7",
-  "request_content_hash": "ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552ae94ab"
+  "event_name": "OrderCreated",
+  "event_payload_hash": "ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552ae94ab"
 }
 ```
 
@@ -220,7 +222,7 @@ The Payments API also verifies that the event message matches the access token.\
 This ensures that any tampered or malicious event messages are rejected:
 
 - The `order_transaction_id` must match that in the event payload
-- The `request_content_hash` must match the hash of the event payload
+- The `event_payload_hash` must match the hash of the event payload
 
 ## Message Replays
 

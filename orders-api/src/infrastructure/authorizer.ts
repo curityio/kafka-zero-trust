@@ -78,17 +78,18 @@ async function authorize(accessToken: string): Promise<ClaimsPrincipal> {
 /*
  * Do a token exchange to get a reduced scope access token to include in the event published to the message broker
  */
-export async function tokenExchange(accessToken: string, orderTransactionID: string, requestContentHash: string): Promise<string> {
+export async function tokenExchange(accessToken: string, orderTransactionID: string, eventPayloadHash: string): Promise<string> {
 
     let body = 'grant_type=https://curity.se/grant/accesstoken';
     body += `&client_id=${oauthConfiguration.clientID}`;
     body += `&client_secret=${oauthConfiguration.clientSecret}`;
-    body += `&scope=payments shipping`;
+    body += `&scope=trigger_payments`;
     body += `&token=${accessToken}`;
     
     // These custom fields are include in the reduced scope token via a token procedure
     body += `&order_transaction_id=${orderTransactionID}`;
-    body += `&request_content_hash=${requestContentHash}`;
+    body += `&event_name=OrderCreated`;
+    body += `&event_payload_hash=${eventPayloadHash}`;
 
     try {
     

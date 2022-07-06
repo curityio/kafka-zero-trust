@@ -24,7 +24,7 @@ UI_OPAQUE_TOKEN=$(curl -s -X POST $IDENTITY_SERVER_URL/oauth/v2/oauth-token \
     -d "client_id=console-client" \
     -d "client_secret=Password1" \
     -d "grant_type=client_credentials" \
-    -d "scope=orders payments shipping" | jq -r .access_token)
+    -d "scope=orders trigger_payments" | jq -r .access_token)
 
 UI_JWT_TOKEN=$(curl -k -s -X POST $IDENTITY_SERVER_URL/oauth/v2/oauth-introspect \
     -u "introspect-client:Password1" \

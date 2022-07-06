@@ -1,11 +1,11 @@
 TOMORROW
 --------
-1. Article draft 1 to complete
-   - Collect open questions here
-
-2. Code polishing
+1. Code polishing
+   
    - use an 'event=order_created' scope in the exchanged access token
    - tokens with an event claim not usable in HTTP requests?
+
+2. Get rid of shipping from repo but include a diagram in the architecture article.
 
 3. API gateway
    Do introspection which can route to local computer, then remove introspection from the client bash 
