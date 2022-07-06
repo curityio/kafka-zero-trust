@@ -9,7 +9,10 @@ export async function startMessageBroker(): Promise<Kafka.Producer> {
 
     const host = process.env.IS_LOCAL ? 'localhost:29092' : 'kafka:9092';
     console.log('Orders API is waiting for the message broker ...');
-    await waitForMessageBroker();
+    
+    if (!process.env.IS_LOCAL) {
+        await waitForMessageBroker();
+    }
 
     const producer = new Kafka.Producer({
         'metadata.broker.list': host,
@@ -31,7 +34,7 @@ export async function startMessageBroker(): Promise<Kafka.Producer> {
 }
 
 /*
- * Wait a short time after startup, before connecting to Kafka
+ * When running in Docker, this helps to ensure that Kafka is reliably started
  */
 async function waitForMessageBroker(): Promise<void> {
     return new Promise((resolve) => {

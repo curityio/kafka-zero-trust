@@ -11,7 +11,10 @@ export async function startMessageBroker(): Promise<void> {
 
     const host = process.env.IS_LOCAL ? 'localhost:29092' : 'kafka:9092';
     console.log('Payments API is waiting for the message broker ...');
-    await waitForMessageBroker();
+    
+    if (!process.env.IS_LOCAL) {
+        await waitForMessageBroker();
+    }
 
     const consumer = new Kafka.KafkaConsumer({
         'group.id': 'payments-api-consumer',
@@ -54,7 +57,7 @@ export async function startMessageBroker(): Promise<void> {
 }
 
 /*
- * Wait a short time after startup, before connecting to Kafka
+ * When running in Docker, this helps to ensure that Kafka is reliably started
  */
 async function waitForMessageBroker(): Promise<void> {
     return new Promise((resolve) => {

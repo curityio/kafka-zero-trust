@@ -2,10 +2,13 @@ TOMORROW
 --------
 1. Update README
    Include a shipping service
+   Then merge code
 
 2. Article
    First zero trust base is to avoid unprotected event endpoints inside the cluster
-   Then mention expiry
+   Then mention expiry differrences for events
+   Different event processing times, eg scheduled end of day jobs
+   Browse Jacob article
    Include notes on concepts of extra data in token exchange requests
    Mention further scopes for downstream microservices
 

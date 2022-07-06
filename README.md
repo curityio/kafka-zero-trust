@@ -1,114 +1,217 @@
 # Kafka Zero Trust
 
-A demo project for exploring a more complete zero trust picture.\
-Companies use systems such as Kafka for data flow patterns.\
-Is this an extra attack vector, and if so how should we secure messages?
+A project to demonstrate event based messaging with zero trust.\
+Before processing every event message the consumer API validates a JWT access token.\
+JWT access tokens used by consumers can be long lived but have reduced permissions.\
+The long lived JWT access token is bound to a specific event message.
 
 ## Example Microservices Scenario
 
-An app based on a user buying something needs to call multiple microservices.\
-A microservices based system might do this:
+To demonstrate the approach, the code example uses a flow where a user facing app triggers a purchase.\
+This results in a number of logical microservice calls in a microservice workflow:
 
 ![Logical Calls](./doc/logical.png)
 
-Some difficult areas exist when dealing with multiple microservices:
+Some physical calls may be routed via a message broker such as [Apache Kafka](https://kafka.apache.org/).\
+The code example a method for forwarding a JWT between services via the message broker:
 
-| Area | Description |
-| ---- | ----------- |
-| Reliability | The system should be resilient to temporary unavailability of certain services |
-| Data Integrity | In the event of retries, no duplicate data should be created |
-| Event Security | Event based messages should be received securely, with no man in the middle risks |
-| Message Replay | Messages should be replayable in the future |
+![Physical Calls](./doc/physical.png)
 
-## Event Based Solutions
+This secures event based messages received by APIs from potential threats inside the cluster.
 
-Systems such as Kafka provide separation so that each microservice is easier to reason about.\
-Data can flow reliably without the need for distributed transactions:
+## Components
 
-![Event Based Calls](./doc/events.png)
+This repo focuses on zero trust routing of event messages between the order and payment microservices.\
+The following diagram illustrates the components involved and the key behaviors:
 
-The initial call to the Sales API only writes to an event store, so it is easy to start processing transactionally.\
-This type of setup also copes with some microservices being temporarily offline.
+![Components](./doc/components.png)
 
-## Message Data
+The following URLs are used:
 
-To prevent data duplication the original client may send a request ID that flows to each microservice.\
-Each API could then check for this request ID in existing data with fairly simple code.
+| Component | Location |
+| --------- | -------- |
+| API Gateway | http://localhost:3000 |
+| Orders API | http://localhost:3000/orders |
+| Payments API | http://localhost:3000/payments |
+| Curity Identity Server Runtime | http://localhost:8443 |
+| Curity Identity Server Admin UI | http://localhost:6749 |
 
-![Request IDs](./doc/request-ids.png)
+## Prerequisites
 
-## Security
+The solution provides two simple Node.js microservices and some deployment resources.\
+First ensure that these prerequisites are installed:
 
-Messages could be digitally signed so that they cannot be tampered with by a man in the middle.\
-Messages could also convey a JWT digital identity containing scopes and claims.\
-Messages could have a version to enable APIs to apply different policies over time.
+- Docker
+- Node.js
+- jq
 
-## API Behavior
+Also get a `license.json` file for the Curity Identity Server and copy it to the `idsvr` folder:
 
-The demo project could consist of a number of simple operations and in-memory storage:
+- If required sign up to the [Curity Developer Portal](https://developer.curity.io/) with your Github account.
+- You can get a [Free Community Edition License](https://curity.io/product/community/) if you are new to the Curity Identity Server.
 
-| API | Operation | Called Via |
-| --- | --------- | ---------- |
-| Sales | Create Order | HTTP |
-| Sales | List Created Orders | HTTP |
-| Orders | Create Order | Event |
-| Orders | List Orders | HTTP |
-| Invoicing | Create Invoice | Event |
-| Invoicing | List Invoiced Orders | HTTP |
-| Shipping | Ship Order | Event |
-| Shipping | List Shipped Orders | HTTP |
+## Run the Code
 
-The demo APIs should use similar middleware to validate JWTs on both HTTP and event based requests.\
-In both cases a claims principal should be created, and business logic should not care how the API was called.\
-Authorization should take place when event messages are consumed, though this is not expected to fail.\
-The API code from this repo is expected to be very simple, but the design is the hard part.
-
-## JWTs and Timing
-
-99% of messages are processed immediately, though there are some 1% exceptions that need to be dealt with:
-
-- A message could fail due to a bug and need to be replayed 24 hours later
-- Event sourcing could be used, and all messages replayed a year later
-- Authorization rules could have changed since the initial message
-
-During message replays, JWTs could have expired or message signing keys could have been renewed.\
-In some cases retries from the client may be possible, but usually the client will have gone away.\
-For some edge cases, expiry errors could perhaps be ignored, without affecting the 99% behavior?
-
-## Initial Demo Project
-
-Some initial code has been stubbed out, to help us think how an end-to-end solution could look.\
-If we are agreed on the direction we could do more work, and reflect edge case behavior in code.
-
-## Running a Kafka Network
-
-Run these commands to build code and spin up a deployed system:
+Run the following script to run the APIs locally and all other components in a Docker Compose network:
 
 ```bash
-./build.sh
 ./deploy.sh
 ```
 
-Then call deployed APIs to get data:
+Or run the following scripts to also deploy the APIs to the Docker Compose network:
 
 ```bash
-curl http://localhost:3001
-curl http://localhost:3002
-curl http://localhost:3003
-curl http://localhost:3004
+./build.sh DEPLOYED
+./deploy.sh DEPLOYED
 ```
 
-Create an order with this command:
+Then run the following script to run a minimal console client:
 
 ```bash
-curl -X POST http://localhost:3001
+cd console-client
+npm install
+npm start
 ```
 
-## Running APIs Locally
+The client will open the system browser and run a code flow, to get a user level token.\
+Sign in as `demouser / Password1` to create an order and trigger event publishing:
 
-To run Kafka in Docker compose but to develop APIs locally, use these commands:
+![Login](./doc/login.png)
 
-```bash
-./build.sh  LOCALAPI
-./deploy.sh LOCALAPI
+## Data and Identity Flow
+
+The client application sends an example order from the end user to the Orders API.\
+This includes an access token that is verified in the standard way.
+
+```json
+{
+  "items":
+  [
+    {
+      "itemID": 1,
+      "quantity": 1
+    },
+    {
+      "itemID": 2,
+      "quantity": 2
+    }
+  ]
+}
 ```
+
+The Orders API then saves the transaction in its own data as follows:
+
+```json
+{
+    "orderTransactionID": "22fc326d-23e4-5fc3-f803-e989854704e7",
+    "userID": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
+    "utcTime": "2022-07-06T09:23:19.577Z",
+    "items": [
+      {
+        "itemID": 1,
+        "quantity": 1,
+        "price": 100
+      },
+      {
+        "itemID": 2,
+        "quantity": 2,
+        "price": 100
+      }
+    ]
+  }
+```
+
+The Orders API then performs a token exchange and publishes an order event with the following structure:
+
+```json
+{
+  "accessToken": "eyJraWQiOiItNDc4MTAzOTYyIiwieDV0IjoiSWlHYkRYQ1V3Yl9sYVkzTm1fRlpWYkhWbElZIiwiYWxnIjoiUlMyNTYifQ.eyJqdGkiOiI5NGQxNzIzYy03MjAwLTQzZjctYjAwZS1lNDk5ZDU5Y2JiNGIiLCJkZWxlZ2F0aW9uSWQiOiI5ZDFiMTc0Ni1jNzgzLTRiZjQtYjc5NS00N2MzYjdhYmY3NWIiLCJleHAiOjE2NTcwOTk5NzgsIm5iZiI6MTY1NzA5OTY3OCwic2NvcGUiOiJzaGlwcGluZyBwYXltZW50cyIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODQ0My9vYXV0aC92Mi9vYXV0aC1hbm9ueW1vdXMiLCJzdWIiOiIyZTFiYTc1ZGFkMmI2MmQ4NjIwZWU5NzIyY2FhZDU0YjAyZDcwODZlZGJkNGMxNTUyOTk2MmNhMjZkMDRlMTAzIiwiYXVkIjoiYXBpLmV4YW1wbGUuY29tIiwiaWF0IjoxNjU3MDk5Njc4LCJwdXJwb3NlIjoiYWNjZXNzX3Rva2VuIiwib3JkZXJfdHJhbnNhY3Rpb25faWQiOiIyMmZjMzI2ZC0yM2U0LTVmYzMtZjgwMy1lOTg5ODU0NzA0ZTciLCJyZXF1ZXN0X2NvbnRlbnRfaGFzaCI6ImVlOGQ0YmQyNTc4OTU3OGMyZGZmY2ZjMTFjNjNiNDJjNjljMTQ5YWY1MGU4MGRjNTkyYjViZGY1NTJhZTk0YWIifQ.EaMXYEfw6bpSHMk2sjPYAjKJgVxDHyeaHSutEPveQcdND5sr9TiDs_Tx6hjpKcqcbs3Bgq-nU-RNzz__DTQpkSjkoOdAyb37TMY-qAtOPtApBqCXCHRfmC-ndfc1rWtSyO7SCbSsJHZwVFeJOH6PokK9dFxYuVJ0C3yuAAaVTUWuig_Mr2bMAsGu52joDMnf9zx3NKxKBBqKCFuIOj9olKq5GREvIeWWKRCiBXj0kafmpQQB03G9OLS5x2Kl3EChYBttkmoqiHMNPU3QYYLRQNbuX2WFEQhxIWLOdMbYXW_Pn8pUkd3Q08VkpDbaAjp6PrwqeSyGFhTWs1SHZN_VPQ",
+  "payload": {
+    "orderTransactionID": "22fc326d-23e4-5fc3-f803-e989854704e7",
+    "userID": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
+    "utcTime": "2022-07-06T09:23:19.577Z",
+    "items": [
+      {
+        "itemID": 1,
+        "quantity": 1,
+        "price": 100
+      },
+      {
+        "itemID": 2,
+        "quantity": 2,
+        "price": 100
+      }
+    ]
+  }
+}
+```
+
+The Payments API consumes the event and validates the JWT access token before processing it.\
+The Payments API then saves the transaction in its own data in the following format.\
+The user identity has flowed between microservices in a digitally verifiable way and is included in auditing:
+
+```json
+{
+    "paymentTransactionID": "544809de-e3a1-e1b5-bb98-894546529073",
+    "orderTransactionID": "22fc326d-23e4-5fc3-f803-e989854704e7",
+    "userID": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
+    "utcTime": "2022-07-06T09:23:19.884Z",
+    "amount": 200
+  }
+```
+
+## Security
+
+The Orders API makes a token exchange request to swap the client access token for a longer lived access token.\
+This prevents potential JWT expiry problems in the Payments API and has reduced privileges.\
+
+```text
+POST http://localhost:8443/oauth/v2/oauth-token
+
+grant_type=https://curity.se/grant/accesstoken&
+client_id=orders-api-client&
+client_secret=Password1&
+scope=payments shipping&
+token=[client_access_token]&
+order_transaction_id=22fc326d-23e4-5fc3-f803-e989854704e7&
+request_content_hash=ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552ae94ab
+```
+
+The Payments API then receives the following JWT access token payload.\
+Before processing the event message, the JWT is verified, so that the details are trusted:
+
+```json
+{
+  "jti": "94d1723c-7200-43f7-b00e-e499d59cbb4b",
+  "delegationId": "9d1b1746-c783-4bf4-b795-47c3b7abf75b",
+  "exp": 1657099978,
+  "nbf": 1657099678,
+  "scope": "shipping payments",
+  "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
+  "sub": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
+  "aud": "api.example.com",
+  "iat": 1657099678,
+  "purpose": "access_token",
+  "order_transaction_id": "22fc326d-23e4-5fc3-f803-e989854704e7",
+  "request_content_hash": "ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552ae94ab"
+}
+```
+
+The transactions ID must match that in the event message.\
+The request_content_hash must match the hash of the event payload.\
+This ensures that any tampered or malicious event messages are rejected.
+
+## Message Replays
+
+If an event message is replayed, then the transaction will already exist in the Payments API.\
+Therefore it will not be reprocessed, so duplicate transactions are avoided.\
+If required, the long lived token in the event message allows data to be recreated via event sourcing.
+
+## Further Information
+
+See the following Curity website resources for further details:
+
+- [Zero Trust API Events Article](https://curity.io/resources/learn/zero-trust-api-events)
+- [Kafka Zero Trust Code Example](https://curity.io/resources/learn/api-using-kafka-zero-trust)
+
+Please visit [curity.io](https://curity.io/) for more information about the Curity Identity Server.
