@@ -3,7 +3,7 @@
 A project to demonstrate event based messaging with zero trust.\
 Before processing every event message the consumer API validates a JWT access token.\
 JWT access tokens used by consumers can be long lived but have reduced permissions.\
-The long lived JWT access token is bound to a specific event message.
+Each long lived JWT access token is bound to a specific event message.
 
 ## Example Microservices Scenario
 
