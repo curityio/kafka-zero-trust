@@ -1,32 +1,21 @@
 # Kafka Zero Trust
 
 A project to demonstrate event based messaging with zero trust.\
-Before processing every event message the consumer API validates a JWT access token.\
+Before processing an event message the consumer API validates a JWT access token.\
 JWT access tokens used by consumers can be long lived but have reduced permissions.\
 Each long lived JWT access token is bound to a specific event message.
 
-## Example Microservices Scenario
+## Behavior Overview
 
 To demonstrate the approach, the code example uses a flow where a user facing app triggers a purchase.\
-This results in a number of logical microservice calls, chained in a workflow:
-
-![Logical Calls](./doc/logical.png)
-
-Some physical calls may be routed via a message broker such as [Apache Kafka](https://kafka.apache.org/).\
-The code example provides a method for securely forwarding access tokens between services via the message broker:
-
-![Physical Calls](./doc/physical.png)
-
-This secures event based messages received by APIs from potential threats inside the cluster.
-
-## Components
-
-This repo focuses on zero trust routing of event messages between the order and payment microservices.\
+The user facing app calls an Orders API which routes to a Payment API via a message broker.\
 The following diagram illustrates the components involved and the key behaviors:
 
 ![Components](./doc/components.png)
 
-The following URLs are used:
+## URLs
+
+The following URLs are used, and [Apache Kafka](https://kafka.apache.org/) is used as the message broker:
 
 | Component | Location |
 | --------- | -------- |
@@ -43,7 +32,6 @@ First ensure that these prerequisites are installed:
 
 - [Docker](https://www.docker.com/products/docker-desktop/)
 - [Node.js](https://nodejs.org/en/download/)
-- [jq](https://github.com/stedolan/jq)
 
 Also get a `license.json` file for the Curity Identity Server and copy it to the `idsvr` folder:
 
@@ -161,7 +149,7 @@ The user identity has flowed between microservices in a digitally verifiable way
   }
 ```
 
-## Security
+## Security and Tokens
 
 The client gets an initial short lived access token with these scopes:
 
@@ -192,7 +180,6 @@ client_secret=Password1&
 scope=payments&
 token=[client_access_token]&
 order_transaction_id=22fc326d-23e4-5fc3-f803-e989854704e7&
-event_name=OrderCreated&
 event_payload_hash=ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552ae94ab
 ```
 
@@ -213,22 +200,12 @@ The Payments API validates the JWT before accepting the message.
   "iat": 1657099678,
   "purpose": "access_token",
   "order_transaction_id": "22fc326d-23e4-5fc3-f803-e989854704e7",
-  "event_name": "OrderCreated",
   "event_payload_hash": "ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552ae94ab"
 }
 ```
 
-The Payments API also verifies that the event message matches the access token.\
-This ensures that any tampered or malicious event messages are rejected:
-
-- The `order_transaction_id` must match that in the event payload
-- The `event_payload_hash` must match the hash of the event payload
-
-## Message Replays
-
-If an event message is replayed, then the transaction will already exist in the Payments API.\
-Therefore it will not be reprocessed, so duplicate transactions can be avoided.\
-Meanwhile, long lived access tokens in event messages can be used with data flow patterns such as event sourcing.
+The Payments API also verifies that the event data matches that in the access token.\
+This ensures that any tampered or malicious event messages are rejected.
 
 ## Further Information
 

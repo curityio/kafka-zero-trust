@@ -88,7 +88,6 @@ export async function tokenExchange(accessToken: string, orderTransactionID: str
     
     // These custom fields are include in the reduced scope token via a token procedure
     body += `&order_transaction_id=${orderTransactionID}`;
-    body += `&event_name=OrderCreated`;
     body += `&event_payload_hash=${eventPayloadHash}`;
 
     try {

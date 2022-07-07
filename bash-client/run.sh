@@ -33,7 +33,7 @@ UI_JWT_TOKEN=$(curl -k -s -X POST $IDENTITY_SERVER_URL/oauth/v2/oauth-introspect
     -d "token=$UI_OPAQUE_TOKEN")
 
 #
-# Create an order
+# Create an order then exit
 #
 echo 'Calling Orders API to create an order ...'
 ORDER_TRANSACTION=$(curl -s -X POST $ORDERS_API_BASE_URL \
@@ -41,22 +41,3 @@ ORDER_TRANSACTION=$(curl -s -X POST $ORDERS_API_BASE_URL \
 -H "accept: application/json" \
 -H "Authorization: Bearer $UI_JWT_TOKEN" \
 -d @defaultOrder.json)
-
-#
-# List orders
-#
-echo 'Viewing created orders ...'
-curl -s -X GET $ORDERS_API_BASE_URL \
--H "Authorization: Bearer $UI_JWT_TOKEN" \
--H "accept: application/json" \
-| jq
-
-#
-# Wait and then List payments
-#
-sleep 2
-echo 'Viewing created payments ...'
-curl -s -X GET $PAYMENTS_API_BASE_URL \
--H "Authorization: Bearer $UI_JWT_TOKEN" \
--H "accept: application/json" \
-| jq

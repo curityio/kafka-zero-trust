@@ -21,14 +21,11 @@ export function createPaymentTransaction(event: OrderCreatedEvent, claims: Claim
         utcTime: new Date(),
         amount: calculateAmount(event.payload.items),
     }
+
+    // Show some debug output to visualize how data flows in a verifiable way
+    console.log('Created Payment Transaction ...');
+    console.log(JSON.stringify(paymentTransaction, null, 2));
         
     paymentTransactions.push(paymentTransaction);
     return paymentTransaction;
-}
-
-/*
- * Return the list of created orders
- */
-export function getPaymentTransactions(): PaymentTransaction[] {
-    return paymentTransactions;
 }

@@ -23,6 +23,11 @@ export function createOrderTransaction(items: OrderItem[], claims: ClaimsPrincip
         items,
     };
 
+
+    // Show some debug output to visualize how data flows in a verifiable way
+    console.log('Created Order Transaction ...');
+    console.log(JSON.stringify(orderTransaction, null, 2));
+
     orderTransactions.push(orderTransaction);
     return orderTransaction;
 }
@@ -35,7 +40,7 @@ export async function publishOrderCreated(orderTransaction: OrderTransaction, ac
     const payload = {
         orderTransactionID: orderTransaction.orderTransactionID,
         userID: orderTransaction.userID,
-        utcTime: orderTransaction.utcTime.getDate(),
+        utcTime: orderTransaction.utcTime.getTime(),
         items: orderTransaction.items,
     };
 

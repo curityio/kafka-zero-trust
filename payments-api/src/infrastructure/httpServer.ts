@@ -1,9 +1,8 @@
 import express from 'express';
 import {authorizeHttpRequest} from './authorizer';
-import {getPaymentTransactions} from '../logic/paymentsService';
 
 /*
- * Set up the REST API
+ * Set up the REST API, though there are no endpoints in this code example
  */
 export function startHttpServer() {
 
@@ -11,18 +10,6 @@ export function startHttpServer() {
     app.use('*', authorizeHttpRequest);
     app.use('*', express.json());
     app.set('etag', false);
-
-    /*
-     * Return a list of payment transactions
-     */
-    app.get('/', (request: express.Request, response: express.Response) => {
-
-        console.log('Payments API returned a list of Payment Transactions ...');
-        response.setHeader('content-type', 'application/json');
-
-        const transactions = getPaymentTransactions();
-        response.status(200).send(JSON.stringify(transactions));
-    });
 
     /*
      * Start listening for HTTP requests

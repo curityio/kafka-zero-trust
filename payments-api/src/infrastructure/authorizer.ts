@@ -92,7 +92,7 @@ export function authorizePayment(event: OrderCreatedEvent, claims: ClaimsPrincip
     if (claims.eventPayloadHash != eventPayloadHash) {
         throw new PaymentServiceError(403, 'invalid_event_message', 'The event message contains an unexpected payload');
     }
-    
+
     // The transaction ID from the event must match that from the access token
     if (claims.orderTransactionID !== event.payload.orderTransactionID) {
         throw new PaymentServiceError(403, 'invalid_event_transaction', 'The event message contain unexpected transaction data');
