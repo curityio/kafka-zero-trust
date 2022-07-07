@@ -67,6 +67,9 @@ Sign in as `demouser / Password1` to create an order and trigger event publishin
 
 ![Login](./doc/login.png)
 
+The client then simply calls the Orders API to create an order transaction and exits.\
+Meanwhile the Orders API raises a secure event consumed by the Payments API.
+
 ## Data and Identity Flow
 
 The client application sends an example order from the end user to the Orders API.\

@@ -18,7 +18,7 @@ export function startHttpServer(producer: Kafka.Producer) {
     /*
      * Return a list of order transactions
      */
-    app.get('/', (request: express.Request, response: express.Response) => {
+    app.get('/orders', (request: express.Request, response: express.Response) => {
 
         console.log('Orders API returned a list of Order Transactions ...');
         response.setHeader('content-type', 'application/json');
@@ -30,7 +30,7 @@ export function startHttpServer(producer: Kafka.Producer) {
     /*
      * Create an order transaction
      */
-    app.post('/', async (request: express.Request, response: express.Response) => {
+    app.post('/orders', async (request: express.Request, response: express.Response) => {
 
         try {
         

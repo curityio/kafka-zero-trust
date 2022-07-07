@@ -29,8 +29,6 @@ services:
   curity-data:
     image: postgres:13.2
     hostname: dbserver
-    ports:
-     - 5432:5432
     volumes:
       - ./idsvr/data:/var/lib/postgresql/data
       - ./idsvr/data-backup.sql:/docker-entrypoint-initdb.d/data-backup.sql
@@ -40,6 +38,23 @@ services:
       POSTGRES_DB: 'idsvr'
 
   #
+  # The API gateway
+  #
+  kong_reverse-proxy:
+    image: custom_kong:2.8.1-alpine
+    hostname: apigateway
+    ports:
+      - 3000:3000
+    volumes:
+      - ./api-gateway/kong.yml:/usr/local/kong/declarative/kong.yml
+    environment:
+      KONG_DATABASE: 'off'
+      KONG_DECLARATIVE_CONFIG: '/usr/local/kong/declarative/kong.yml'
+      KONG_PROXY_LISTEN: '0.0.0.0:3000'
+      KONG_LOG_LEVEL: 'info'
+      KONG_PLUGINS: 'bundled,phantom-token'
+
+  #
   # Manages Kafka clustering
   #
   zookeeper:
@@ -47,7 +62,7 @@ services:
     hostname: zookeeper
     container_name: zookeeper
     ports:
-      - "22181:2181"
+      - 22181:2181
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -91,7 +106,7 @@ services:
       - zookeeper
       - kafka
     ports:
-      - "8081:8081"
+      - 8081:8081
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
@@ -117,8 +132,6 @@ services:
   orders-api:
     image: orders-api:1.0.0
     hostname: ordersapi
-    ports:
-      - 3001:3001
     depends_on:
       kafka:
         condition: service_healthy
@@ -131,8 +144,6 @@ services:
   payments-api:
     image: payments-api:1.0.0
     hostname: paymentsapi
-    ports:
-      - 3002:3002
     depends_on:
       kafka:
         condition: service_healthy

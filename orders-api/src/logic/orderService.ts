@@ -25,7 +25,7 @@ export function createOrderTransaction(items: OrderItem[], claims: ClaimsPrincip
 
 
     // Show some debug output to visualize how data flows in a verifiable way
-    console.log('Created Order Transaction ...');
+    console.log('Creating Order Transaction ...');
     console.log(JSON.stringify(orderTransaction, null, 2));
 
     orderTransactions.push(orderTransaction);
@@ -44,6 +44,9 @@ export async function publishOrderCreated(orderTransaction: OrderTransaction, ac
         items: orderTransaction.items,
     };
 
+    console.log('Performing Token Exchange ...');
+    console.log(accessToken);
+
     const eventPayloadHash = hash.sha256(JSON.stringify(payload));
     const longLivedReducedScopeAccessToken = await tokenExchange(accessToken, orderTransaction.orderTransactionID, eventPayloadHash);
 
@@ -51,6 +54,9 @@ export async function publishOrderCreated(orderTransaction: OrderTransaction, ac
         accessToken: longLivedReducedScopeAccessToken,
         payload,
     } as OrderCreatedEvent;
+
+    console.log('Publishing OrderCreated Event ...');
+    console.log(JSON.stringify(orderCreatedEvent, null, 2));
 
     producer.produce('OrderCreated', null, Buffer.from(JSON.stringify(orderCreatedEvent)));
 }

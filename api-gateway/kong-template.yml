@@ -1,0 +1,21 @@
+_format_version: '2.1'
+_transform: true
+
+services:
+
+#
+# When the console client calls the Orders API, the gateway manages introspection
+#
+- name: orders-api
+  url: http://$ORDERS_API_HOST_NAME:3001/orders
+  routes:
+  - name: orders-api-route
+    paths:
+    - /orders
+  plugins:
+  - name: phantom-token
+    config:
+      introspection_endpoint: http://curityserver:8443/oauth/v2/oauth-introspect
+      client_id: introspect-client
+      client_secret: Password1
+      token_cache_seconds: 900

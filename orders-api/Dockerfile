@@ -15,7 +15,7 @@ RUN apk add --no-cache --virtual .build-deps gcc zlib-dev libc-dev bsd-compat-he
 
 WORKDIR /usr/api
 COPY package*.json /usr/api/
-COPY dist/*.js     /usr/api/dist/
+COPY dist/         /usr/api/dist/
 
 RUN npm install --production
 

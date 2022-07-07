@@ -24,6 +24,18 @@ fi
 cp ./hooks/pre-commit ./.git/hooks
 
 #
+# When APIs run locally, the API gateway call
+#
+if [ "$PROFILE" == 'DEPLOYED' ]; then
+  # When APIs run in Docker, the API gateway uses the API container's docker host name
+  export ORDERS_API_HOST_NAME='ordersapi'
+else
+  # When APIs run locally, the API gateway calls out to the host computer
+  export ORDERS_API_HOST_NAME='host.docker.internal'
+fi
+envsubst < ./api-gateway/kong-template.yml > ./api-gateway/kong.yml
+
+#
 # Run the Docker Compose network and clear volumes etc first
 #
 docker compose --project-name kakfa down &&

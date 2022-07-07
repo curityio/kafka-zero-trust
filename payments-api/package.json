@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "A Node.js API which consumes events with a JWT identity",
     "scripts": {
-        "build": "rm -rf dist && tsc",
+        "build": "rm -rf dist && tsc --sourceMap false",
         "start": "IS_LOCAL=true ts-node --files src/index.ts"
     },
     "author": "Curity AB",

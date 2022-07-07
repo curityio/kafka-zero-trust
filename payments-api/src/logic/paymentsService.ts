@@ -14,6 +14,9 @@ export function createPaymentTransaction(event: OrderCreatedEvent, claims: Claim
 
     authorizePayment(event, claims);
 
+    console.log('Consuming OrderCreated Event ...');
+    console.log(JSON.stringify(event, null, 2));
+
     const paymentTransaction = {
         paymentTransactionID: Guid.create().toString(),
         orderTransactionID: claims.orderTransactionID!,
@@ -23,7 +26,7 @@ export function createPaymentTransaction(event: OrderCreatedEvent, claims: Claim
     }
 
     // Show some debug output to visualize how data flows in a verifiable way
-    console.log('Created Payment Transaction ...');
+    console.log('Creating Payment Transaction ...');
     console.log(JSON.stringify(paymentTransaction, null, 2));
         
     paymentTransactions.push(paymentTransaction);
