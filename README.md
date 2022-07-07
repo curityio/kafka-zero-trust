@@ -6,7 +6,7 @@ A project to demonstrate event based messaging between APIs with zero trust:
 - Consuming APIs validate the access token before processing event messages
 - Identity thus flows securely, and data integrity of event messages is also guaranteed
 
-[Apache Kafka](https://kafka.apache.org/) is used for event based messaging.
+This code example uses [Apache Kafka](https://kafka.apache.org/) for event based messaging.
 
 ## Behavior Overview
 
