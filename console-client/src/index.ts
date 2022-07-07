@@ -15,10 +15,9 @@ import {createOrderTransaction} from './apiClient'
         const accessToken = await login();
 
         console.log('Console client is calling the Orders API ...');
-        const data = await createOrderTransaction(accessToken);
+        await createOrderTransaction(accessToken);
 
         console.log(`Order transaction created successfully ...`);
-        console.log(JSON.stringify(data, null, 2));
 
     } catch (e: any) {
 

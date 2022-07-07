@@ -45,7 +45,6 @@ export async function publishOrderCreated(orderTransaction: OrderTransaction, ac
     };
 
     console.log('Performing Token Exchange ...');
-    console.log(accessToken);
 
     const eventPayloadHash = hash.sha256(JSON.stringify(payload));
     const longLivedReducedScopeAccessToken = await tokenExchange(accessToken, orderTransaction.orderTransactionID, eventPayloadHash);
@@ -56,7 +55,6 @@ export async function publishOrderCreated(orderTransaction: OrderTransaction, ac
     } as OrderCreatedEvent;
 
     console.log('Publishing OrderCreated Event ...');
-    console.log(JSON.stringify(orderCreatedEvent, null, 2));
 
     producer.produce('OrderCreated', null, Buffer.from(JSON.stringify(orderCreatedEvent)));
 }

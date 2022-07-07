@@ -1,29 +1,19 @@
 # Kafka Zero Trust
 
-A project to demonstrate event based messaging with zero trust.\
-Before processing an event message the consumer API validates a JWT access token.\
-JWT access tokens used by consumers can be long lived but have reduced permissions.\
-Each long lived JWT access token is bound to a specific event message.
+A project to demonstrate event based messaging between APIs with zero trust:
+
+- Publishing APIs include a long lived reduced privilege access token in event messages
+- Consuming APIs validate the access token before processing event messages
+- Identity thus flows securely, and data integrity of event messages is also guaranteed
 
 ## Behavior Overview
 
 To demonstrate the approach, the code example uses a flow where a user facing app triggers a purchase.\
-The user facing app calls an Orders API which routes to a Payment API via a message broker.\
+The user facing app calls an Orders API which publishes an event to a message broker.\
+A Payments API then consumes the event and makes additional security checks before processing the data.\
 The following diagram illustrates the components involved and the key behaviors:
 
 ![Components](./doc/components.png)
-
-## URLs
-
-The following URLs are used, and [Apache Kafka](https://kafka.apache.org/) is used as the message broker:
-
-| Component | Location |
-| --------- | -------- |
-| API Gateway | http://localhost:3000 |
-| Orders API | http://localhost:3000/orders |
-| Payments API | http://localhost:3000/payments |
-| Curity Identity Server Runtime | http://localhost:8443 |
-| Curity Identity Server Admin UI | http://localhost:6749 |
 
 ## Prerequisites
 
@@ -44,17 +34,11 @@ Run the following script to run the APIs locally and all other components in a D
 On the initial run it will take some minutes to download large third party containers:
 
 ```bash
+./build.sh
 ./deploy.sh
 ```
 
-Or run the following scripts to also deploy the APIs to the Docker Compose network:
-
-```bash
-./build.sh DEPLOYED
-./deploy.sh DEPLOYED
-```
-
-Then run a minimal console client:
+Then run a minimal console client that acts as the user facing app:
 
 ```bash
 cd console-client
@@ -70,22 +54,30 @@ Sign in as `demouser / Password1` to create an order and trigger event publishin
 The client then simply calls the Orders API to create an order transaction and exits.\
 Meanwhile the Orders API raises a secure event consumed by the Payments API.
 
+## URLs
+
+The following external URLs are available on the development computer.\
+The payments service runs inside the cluster, along with an [Apache Kafka](https://kafka.apache.org/) message broker:
+
+| Component | Location |
+| --------- | -------- |
+| API Gateway | http://localhost:3000 |
+| Orders API | http://localhost:3000/orders |
+| Curity Identity Server Runtime | http://localhost:8443 |
+| Curity Identity Server Admin UI | http://localhost:6749 |
+
 ## Data and Identity Flow
 
-The client application sends an example order from the end user to the Orders API.\
-This includes an access token that is verified in the standard way.
+The client application sends an example order such as the following to the Orders API.\
+This request includes an access token that is verified in the standard way:
 
 ```json
 {
   "items":
   [
     {
-      "itemID": 1,
-      "quantity": 1
-    },
-    {
-      "itemID": 2,
-      "quantity": 2
+      "itemID": 3,
+      "quantity": 3
     }
   ]
 }
@@ -95,42 +87,32 @@ The Orders API then saves the transaction in its own data as follows:
 
 ```json
 {
-    "orderTransactionID": "22fc326d-23e4-5fc3-f803-e989854704e7",
-    "userID": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
-    "utcTime": "2022-07-06T09:23:19.577Z",
-    "items": [
-      {
-        "itemID": 1,
-        "quantity": 1,
-        "price": 100
-      },
-      {
-        "itemID": 2,
-        "quantity": 2,
-        "price": 100
-      }
-    ]
-  }
+  "orderTransactionID": "1b6d215b-7ce2-4e0b-9079-f4e1266f57b1",
+  "userID": "demouser",
+  "utcTime": "2022-07-07T17:39:30.280Z",
+  "items": [
+    {
+      "itemID": 3,
+      "quantity": 3,
+      "price": 100
+    }
+  ]
+}
 ```
 
-The Orders API then performs a token exchange and publishes an order event with the following structure:
+The Orders API then performs a token exchange and publishes an `OrderCreated` event with the following structure:
 
 ```json
 {
-  "accessToken": "eyJraWQiOiItNDc4MTAzOTYyIiwieDV0IjoiSWlHYkRYQ1V3Yl9sYVkzTm1fRlpWYkhWbElZIiwiYWxnIjoiUlMyNTYifQ.eyJqdGkiOiI5NGQxNzIzYy03MjAwLTQzZjctYjAwZS1lNDk5ZDU5Y2JiNGIiLCJkZWxlZ2F0aW9uSWQiOiI5ZDFiMTc0Ni1jNzgzLTRiZjQtYjc5NS00N2MzYjdhYmY3NWIiLCJleHAiOjE2NTcwOTk5NzgsIm5iZiI6MTY1NzA5OTY3OCwic2NvcGUiOiJzaGlwcGluZyBwYXltZW50cyIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6ODQ0My9vYXV0aC92Mi9vYXV0aC1hbm9ueW1vdXMiLCJzdWIiOiIyZTFiYTc1ZGFkMmI2MmQ4NjIwZWU5NzIyY2FhZDU0YjAyZDcwODZlZGJkNGMxNTUyOTk2MmNhMjZkMDRlMTAzIiwiYXVkIjoiYXBpLmV4YW1wbGUuY29tIiwiaWF0IjoxNjU3MDk5Njc4LCJwdXJwb3NlIjoiYWNjZXNzX3Rva2VuIiwib3JkZXJfdHJhbnNhY3Rpb25faWQiOiIyMmZjMzI2ZC0yM2U0LTVmYzMtZjgwMy1lOTg5ODU0NzA0ZTciLCJyZXF1ZXN0X2NvbnRlbnRfaGFzaCI6ImVlOGQ0YmQyNTc4OTU3OGMyZGZmY2ZjMTFjNjNiNDJjNjljMTQ5YWY1MGU4MGRjNTkyYjViZGY1NTJhZTk0YWIifQ.EaMXYEfw6bpSHMk2sjPYAjKJgVxDHyeaHSutEPveQcdND5sr9TiDs_Tx6hjpKcqcbs3Bgq-nU-RNzz__DTQpkSjkoOdAyb37TMY-qAtOPtApBqCXCHRfmC-ndfc1rWtSyO7SCbSsJHZwVFeJOH6PokK9dFxYuVJ0C3yuAAaVTUWuig_Mr2bMAsGu52joDMnf9zx3NKxKBBqKCFuIOj9olKq5GREvIeWWKRCiBXj0kafmpQQB03G9OLS5x2Kl3EChYBttkmoqiHMNPU3QYYLRQNbuX2WFEQhxIWLOdMbYXW_Pn8pUkd3Q08VkpDbaAjp6PrwqeSyGFhTWs1SHZN_VPQ",
+  "accessToken": "eyJraWQiOiItMTcyNT ...",
   "payload": {
-    "orderTransactionID": "22fc326d-23e4-5fc3-f803-e989854704e7",
-    "userID": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
-    "utcTime": "2022-07-06T09:23:19.577Z",
+    "orderTransactionID": "1b6d215b-7ce2-4e0b-9079-f4e1266f57b1",
+    "userID": "demouser",
+    "utcTime": 1657215570280,
     "items": [
       {
-        "itemID": 1,
-        "quantity": 1,
-        "price": 100
-      },
-      {
-        "itemID": 2,
-        "quantity": 2,
+        "itemID": 3,
+        "quantity": 3,
         "price": 100
       }
     ]
@@ -140,75 +122,75 @@ The Orders API then performs a token exchange and publishes an order event with 
 
 The Payments API consumes the event and validates the JWT access token before processing it.\
 The Payments API then saves the transaction in its own data in the following format.\
-The user identity has flowed between microservices in a digitally verifiable way and is included in auditing:
+The user identity has flowed between microservices in a digitally verifiable way, and can be audited:
 
 ```json
 {
-    "paymentTransactionID": "544809de-e3a1-e1b5-bb98-894546529073",
-    "orderTransactionID": "22fc326d-23e4-5fc3-f803-e989854704e7",
-    "userID": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
-    "utcTime": "2022-07-06T09:23:19.884Z",
-    "amount": 200
-  }
+  "paymentTransactionID": "f093c858-d7c8-8ca4-2437-dbb6498c14b2",
+  "orderTransactionID": "1b6d215b-7ce2-4e0b-9079-f4e1266f57b1",
+  "userID": "demouser",
+  "utcTime": "2022-07-07T17:39:31.444Z",
+  "amount": 100
+}
 ```
 
 ## Security and Tokens
 
-The client gets an initial short lived access token with these scopes:
+The client gets an initial access token with a 15 minute expiry and multiple scopes:
 
 ```json
 {
-  "jti": "94d1723c-7200-43f7-b00e-e499d59cbb4b",
-  "delegationId": "9d1b1746-c783-4bf4-b795-47c3b7abf75b",
-  "exp": 1657099978,
-  "nbf": 1657099678,
-  "scope": "orders trigger_payments",
+  "jti": "2038fb12-8089-4ebb-bca7-efdd179adc72",
+  "delegationId": "e39a700d-3f3d-469e-a72f-aa02d55d5d54",
+  "exp": 1657215870,
+  "nbf": 1657215570,
+  "scope": "openid profile orders trigger_payments",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
-  "sub": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
+  "sub": "demouser",
   "aud": "api.example.com",
-  "iat": 1657099678,
+  "iat": 1657215570,
   "purpose": "access_token"
 }
 ```
 
-The Orders API makes a token exchange request to swap the client access token for a longer lived access token.\
-This prevents potential JWT expiry problems in the Payments API and has reduced privileges.
+The Orders API makes a token exchange request to swap the client access token for a longer lived access token:
 
 ```text
 POST http://localhost:8443/oauth/v2/oauth-token
 
-grant_type=https://curity.se/grant/accesstoken&
-client_id=orders-api-client&
-client_secret=Password1&
-scope=payments&
-token=[client_access_token]&
-order_transaction_id=22fc326d-23e4-5fc3-f803-e989854704e7&
-event_payload_hash=ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552ae94ab
+grant_type=https://curity.se/grant/accesstoken
+&client_id=orders-api-client
+&client_secret=Password1
+&scope=payments
+&token=eyJraWQiOiItMTcyNTQxNzE2NyIsIng...
+&order_transaction_id=1b6d215b-7ce2-4e0b-9079-f4e1266f57b1
+&event_payload_hash=7e6d3d4b2608625f144f9c1a988da170504a368b647a6609ac4ec6c939496be1
 ```
 
-The Payments API then receives the following JWT access token payload.\
-Scopes are reduced and extra claims added for authorization.\
-The Payments API validates the JWT before accepting the message.
+The Payments API then receives the following JWT access token payload with a 1 year lifetime and a single scope.\
+The last two token claims bind it to the specific event, as a mechansim to ensure data integrity:
 
 ```json
 {
-  "jti": "94d1723c-7200-43f7-b00e-e499d59cbb4b",
-  "delegationId": "9d1b1746-c783-4bf4-b795-47c3b7abf75b",
-  "exp": 1657099978,
-  "nbf": 1657099678,
+  "jti": "afa3d2b3-3b97-4a0a-9e31-ad8e69aac9ba",
+  "delegationId": "e39a700d-3f3d-469e-a72f-aa02d55d5d54",
+  "exp": 1688751570,
+  "nbf": 1657215570,
   "scope": "trigger_payments",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
-  "sub": "2e1ba75dad2b62d8620ee9722caad54b02d7086edbd4c15529962ca26d04e103",
+  "sub": "demouser",
   "aud": "api.example.com",
-  "iat": 1657099678,
+  "iat": 1657215570,
   "purpose": "access_token",
-  "order_transaction_id": "22fc326d-23e4-5fc3-f803-e989854704e7",
-  "event_payload_hash": "ee8d4bd25789578c2dffcfc11c63b42c69c149af50e80dc592b5bdf552ae94ab"
+  "order_transaction_id": "1b6d215b-7ce2-4e0b-9079-f4e1266f57b1",
+  "event_payload_hash": "7e6d3d4b2608625f144f9c1a988da170504a368b647a6609ac4ec6c939496be1"
 }
 ```
 
-The Payments API also verifies that the event data matches that in the access token.\
-This ensures that any tampered or malicious event messages are rejected.
+The Payments API only receives tokens with this scope at a single endpoint.\
+The Payments API verifies that the event data matches that in the access token.\
+A malicious party cannot publish events since they do not have access to the JWT signing private key.\
+A malicious party cannot alter events since the event data would no longer match the claim in the JWT.
 
 ## Further Information
 

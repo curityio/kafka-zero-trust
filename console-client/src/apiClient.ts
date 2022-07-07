@@ -8,12 +8,10 @@ const ordersApiBaseUrl = 'http://localhost:3000/orders';
  */
 export async function createOrderTransaction(accessToken: string): Promise<any> {
 
-    const ordersBuffer = await fs.readFile('randomOrders.json');
+    const ordersBuffer = await fs.readFile('exampleOrders.json');
     const orders = JSON.parse(ordersBuffer.toString());
     const order = orders[Math.floor(Math.random() * orders.length)];
     const body = JSON.stringify(order);
-
-    console.log('sending ' + JSON.stringify(order, null, 2))
 
     const options = {
         method: 'POST',

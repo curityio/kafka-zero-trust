@@ -15,7 +15,6 @@ export function createPaymentTransaction(event: OrderCreatedEvent, claims: Claim
     authorizePayment(event, claims);
 
     console.log('Consuming OrderCreated Event ...');
-    console.log(JSON.stringify(event, null, 2));
 
     const paymentTransaction = {
         paymentTransactionID: Guid.create().toString(),

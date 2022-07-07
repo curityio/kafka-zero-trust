@@ -11,7 +11,7 @@ const identityServerBaseUrl = 'http://localhost:8443/oauth/v2';
 const authorizationEndpoint = `${identityServerBaseUrl}/oauth-authorize`;
 const tokenEndpoint = `${identityServerBaseUrl}/oauth-token`;
 const clientId = 'console-client';
-const loopbackPort = 8000;
+const loopbackPort = 3003;
 const redirectUri = `http://localhost:${loopbackPort}`;
 const scope = 'openid profile orders trigger_payments'
 
@@ -29,25 +29,31 @@ export async function login(): Promise<string> {
 
     return new Promise<string>((resolve, reject) => {
 
+        let server: Http.Server | null = null;
         const callback = async (request: Http.IncomingMessage, response: Http.ServerResponse) => {
 
-            // Complete the incoming request and the code example will then redirect the browser
-            response.writeHead(301, {
-                Location: 'https://curity.io',
-            });
-            response.end();
+            if (server != null) {
+                
+                // Complete the incoming HTTP request when a login response is received
+                response.write('Login completed for the console client ...');
+                response.end();
+                server.close();
+                server = null;
 
-            try {
-                const accessToken = await redeemCodeForAccessToken(request.url!, state, codeVerifier);
-                resolve(accessToken);
+                try {
 
-            } catch (e: any) {
-                reject(e);
+                    // Swap the code for tokens
+                    const accessToken = await redeemCodeForAccessToken(request.url!, state, codeVerifier);
+                    resolve(accessToken);
+
+                } catch (e: any) {
+                    reject(e);
+                }
             }
         }
 
         // Start an HTTP server and listen for the authorization response on a loopback URL, according to RFC8252
-        const server = Http.createServer(callback);
+        server = Http.createServer(callback);
         server.listen(loopbackPort);
         
         // Open the system browser to begin authentication
