@@ -6,6 +6,8 @@ A project to demonstrate event based messaging between APIs with zero trust:
 - Consuming APIs validate the access token before processing event messages
 - Identity thus flows securely, and data integrity of event messages is also guaranteed
 
+[Apache Kafka](https://kafka.apache.org/) is used for event based messaging.
+
 ## Behavior Overview
 
 To demonstrate the approach, the code example uses a flow where a user facing app triggers a purchase.\
@@ -25,20 +27,20 @@ First ensure that these prerequisites are installed:
 
 Also get a `license.json` file for the Curity Identity Server and copy it to the `idsvr` folder:
 
-- If required sign up to the [Curity Developer Portal](https://developer.curity.io/) with your Github account.
-- You can get a [Free Community Edition License](https://curity.io/product/community/) if you are new to the Curity Identity Server.
+- If required sign up to the [Curity Developer Portal](https://developer.curity.io/) with your Github account
+- You can get a [Free Community Edition License](https://curity.io/product/community/) if you are new to the Curity Identity Server
 
 ## Run the Code
 
-Run the following script to run the APIs locally and all other components in a Docker Compose network.\
-On the initial run it will take some minutes to download large third party containers:
+Execute these commands to run the APIs locally and all other components in a Docker Compose network.\
+On the initial run it will take some minutes to download all third party containers:
 
 ```bash
 ./build.sh
 ./deploy.sh
 ```
 
-Then run a minimal console client that acts as the user facing app:
+Then run a minimal console client which acts as the user facing app:
 
 ```bash
 cd console-client
@@ -47,17 +49,17 @@ npm start
 ```
 
 The client will run a code flow that opens the system browser, to get a user level access token.\
-Sign in as `demouser / Password1` to create an order and trigger event publishing:
+Sign in as `demouser / Password1` to get the initial user level access token:
 
 ![Login](./doc/login.png)
 
-The client then simply calls the Orders API to create an order transaction and exits.\
+The console client then simply calls the Orders API to create an order transaction and exits.\
 Meanwhile the Orders API raises a secure event consumed by the Payments API.
 
 ## URLs
 
 The following external URLs are available on the development computer.\
-The payments service runs inside the cluster, along with an [Apache Kafka](https://kafka.apache.org/) message broker:
+The payments service and Apache Kafka run inside the cluster.
 
 | Component | Location |
 | --------- | -------- |
