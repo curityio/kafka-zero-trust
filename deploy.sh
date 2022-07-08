@@ -24,7 +24,7 @@ fi
 cp ./hooks/pre-commit ./.git/hooks
 
 #
-# When APIs run locally, the API gateway call
+# Configure the API gateway to point to the correct API URL
 #
 if [ "$PROFILE" == 'DEPLOYED' ]; then
   # When APIs run in Docker, the API gateway uses the API container's docker host name
