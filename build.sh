@@ -28,20 +28,36 @@ if [ $? -ne 0 ]; then
 fi
 
 #
+# Install dependencies
+#
+cd orders-api
+npm install
+if [ $? -ne 0 ]; then
+    echo "Problem encountered installing Orders API dependencies"
+    exit 1
+fi
+cd ..
+
+#
+# Install dependencies
+#
+cd payments-api
+npm install
+if [ $? -ne 0 ]; then
+    echo "Problem encountered installing Payments API dependencies"
+    exit 1
+fi
+cd ..
+
+#
 # Build Docker images for deployed APIs if required
 #
 if [ "$PROFILE" == 'DEPLOYED' ]; then
 
   #
-  # Build the Orders API
+  # Build the Orders API Docker image
   #
   cd orders-api
-  npm install
-  if [ $? -ne 0 ]; then
-    echo "Problem encountered installing Orders API dependencies"
-    exit 1
-  fi
-
   npm run build
   if [ $? -ne 0 ]; then
     echo "Problem encountered building Orders API code"
@@ -58,15 +74,9 @@ if [ "$PROFILE" == 'DEPLOYED' ]; then
   cd ..
 
   #
-  # Build the Payments API
+  # Build the Payments API  Docker image
   #
   cd payments-api
-  npm install
-  if [ $? -ne 0 ]; then
-    echo "Problem encountered installing Payments API dependencies"
-    exit 1
-  fi
-
   npm run build
   if [ $? -ne 0 ]; then
     echo "Problem encountered building Payments API code"

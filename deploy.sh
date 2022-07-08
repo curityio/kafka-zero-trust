@@ -24,6 +24,14 @@ fi
 cp ./hooks/pre-commit ./.git/hooks
 
 #
+# Check there is a license file
+#
+if [ ! -f './idsvr/license.json' ]; then
+  echo 'Please provide a license.json file in the idsvr folder in order to deploy the system'
+  exit 1
+fi
+
+#
 # Configure the API gateway to point to the correct API URL
 #
 if [ "$PROFILE" == 'DEPLOYED' ]; then
