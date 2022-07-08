@@ -1,6 +1,6 @@
 import express from 'express';
 import Kafka from 'node-rdkafka';
-import {createOrderTransaction, getOrderTransactions, publishOrderCreated} from '../logic/orderService';
+import {createOrderTransaction, getOrderTransactions, publishOrderCreated} from '../logic/ordersService';
 import {authorizeHttpRequest, readAccessToken} from './authorizer';
 import {logError, sendClientResponse} from './exceptionHandler';
 import {OrderServiceError} from './orderServiceError';

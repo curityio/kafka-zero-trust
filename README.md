@@ -199,6 +199,6 @@ A malicious party cannot alter events since the event data would no longer match
 See the following Curity website resources for further details:
 
 - [Zero Trust API Events Article](https://curity.io/resources/learn/zero-trust-api-events)
-- [Kafka Zero Trust Code Example](https://curity.io/resources/learn/api-using-zero-trust-events)
+- [Kafka Zero Trust Code Example](https://curity.io/resources/learn/securing-api-events-using-jwts)
 
 Please visit [curity.io](https://curity.io/) for more information about the Curity Identity Server.
