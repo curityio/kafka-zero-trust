@@ -149,10 +149,3 @@ services:
         condition: service_healthy
     profiles:
      - DEPLOYED
-
-  #
-  # Also deploy a container with networking tools, for troubleshooting
-  #
-  util:
-    image: wbitt/network-multitool
-    hostname: multitool
