@@ -15,7 +15,7 @@ The user facing app calls an Orders API which publishes an event to a message br
 A Payments API then consumes the event and makes additional security checks before processing the data.\
 The following diagram illustrates the components involved and the key behaviors:
 
-![Components](./doc/components.png)
+![Components](./doc/components.svg)
 
 ## Prerequisites
 
