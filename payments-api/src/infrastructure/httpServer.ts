@@ -1,5 +1,5 @@
 import express from 'express';
-import {authorizeHttpRequest} from './authorizer';
+import {authorizeHttpRequest} from './authorizer.js';
 
 /*
  * Set up the REST API, though there are no endpoints in this code example

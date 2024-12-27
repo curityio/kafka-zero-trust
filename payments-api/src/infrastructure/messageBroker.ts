@@ -1,8 +1,8 @@
 import Kafka from 'node-rdkafka';
-import {authorize} from './authorizer';
-import {createPaymentTransaction} from '../logic/paymentsService';
-import {logError} from './exceptionHandler';
-import {PaymentServiceError} from './paymentServiceError';
+import {authorize} from './authorizer.js';
+import {createPaymentTransaction} from '../logic/paymentsService.js';
+import {logError} from './exceptionHandler.js';
+import {PaymentServiceError} from './paymentServiceError.js';
 
 /*
  * Set up the message broker ready for consuming

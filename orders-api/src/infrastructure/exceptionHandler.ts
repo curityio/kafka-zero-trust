@@ -1,5 +1,5 @@
 import express from 'express';
-import {OrderServiceError} from './orderServiceError';
+import {OrderServiceError} from './orderServiceError.js';
 
 /*
  * Basic API error logging

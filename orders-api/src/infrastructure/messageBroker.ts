@@ -1,6 +1,6 @@
 import Kafka from 'node-rdkafka';
-import {logError} from './exceptionHandler';
-import {OrderServiceError} from './orderServiceError';
+import {logError} from './exceptionHandler.js';
+import {OrderServiceError} from './orderServiceError.js';
 
 /*
  * Set up the message broker ready for publishing

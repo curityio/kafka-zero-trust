@@ -1,9 +1,9 @@
 import express from 'express';
 import Kafka from 'node-rdkafka';
-import {createOrderTransaction, getOrderTransactions, publishOrderCreated} from '../logic/ordersService';
-import {authorizeHttpRequest, readAccessToken} from './authorizer';
-import {logError, sendClientResponse} from './exceptionHandler';
-import {OrderServiceError} from './orderServiceError';
+import {createOrderTransaction, getOrderTransactions, publishOrderCreated} from '../logic/ordersService.js';
+import {authorizeHttpRequest, readAccessToken} from './authorizer.js';
+import {logError, sendClientResponse} from './exceptionHandler.js';
+import {OrderServiceError} from './orderServiceError.js';
 
 /*
  * Set up the REST API

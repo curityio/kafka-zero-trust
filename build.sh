@@ -12,16 +12,14 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 #
 # Default to running APIs locally, with Kafka always running in Docker
 #
-if [ "$1" == 'DEPLOYED' ]; then
-  PROFILE='DEPLOYED'
-else
+if [ "$PROFILE" != 'DEPLOYED' ]; then
   PROFILE='LOCAL'
 fi
 
 #
 # Build the Docker image for the API gateway
 #
-docker build --no-cache -f api-gateway/Dockerfile -t custom_kong:3.8
+docker build --no-cache -f api-gateway/Dockerfile -t custom_kong:3.8 .
 if [ $? -ne 0 ]; then
   echo "Problem encountered building the API gateway Docker image"
   exit 1

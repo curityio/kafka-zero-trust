@@ -1,12 +1,12 @@
 import {Guid} from 'guid-typescript';
 import hash from 'js-sha256';
 import Kafka from 'node-rdkafka';
-import {tokenExchange} from '../infrastructure/authorizer';
-import {ClaimsPrincipal} from './claimsPrincipal';
-import {OrderCreatedEvent} from './orderCreatedEvent';
-import {OrderItem} from './orderItem';
-import {OrderTransaction} from './orderTransaction';
-import {calculatePrices} from './priceCalculator';
+import {tokenExchange} from '../infrastructure/authorizer.js';
+import {ClaimsPrincipal} from './claimsPrincipal.js';
+import {OrderCreatedEvent} from './orderCreatedEvent.js';
+import {OrderItem} from './orderItem.js';
+import {OrderTransaction} from './orderTransaction.js';
+import {calculatePrices} from './priceCalculator.js';
 
 const orderTransactions: OrderTransaction[] = [];
 

@@ -2,10 +2,10 @@ import express from 'express';
 
 import {createRemoteJWKSet, jwtVerify, JWTVerifyResult} from 'jose';
 import fetch from 'node-fetch'
-import {ClaimsPrincipal} from '../logic/claimsPrincipal';
-import {logError, sendClientResponse} from './exceptionHandler';
-import {oauthConfiguration} from './oauthConfiguration';
-import {OrderServiceError} from './orderServiceError';
+import {ClaimsPrincipal} from '../logic/claimsPrincipal.js';
+import {logError, sendClientResponse} from './exceptionHandler.js';
+import {oauthConfiguration} from './oauthConfiguration.js';
+import {OrderServiceError} from './orderServiceError.js';
 
 const remoteJWKSet = createRemoteJWKSet(new URL(oauthConfiguration.jwksEndpoint));
 

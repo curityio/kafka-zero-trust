@@ -426,12 +426,9 @@
         <id>default-datasource</id>
         <jdbc xmlns="https://curity.se/ns/ext-conf/jdbc">
           <connection-string>data:text/plain;aes,v:S.THBXcUdDd3FpUTlMcUdDeQ==.KZJw_EUbQXae05PcRDH7Fg==.2xxwBYGsv2L3YBek2IGRayItWEN6UYcudPP254u_Zrj92UstNxxhBXInFGjRoxck.fhnzI5BVjwZguQMPGbBRs7XWS8RZAI11PzIGeOcmd7A=</connection-string>
-          <connection-timeout>30000</connection-timeout>
+          <standard-credentials-mode>
+          </standard-credentials-mode>
           <driver>org.postgresql.Driver</driver>
-          <idle-timeout>600000</idle-timeout>
-          <max-lifetime>1800000</max-lifetime>
-          <max-pool-size>20</max-pool-size>
-          <min-idle-pool-size>10</min-idle-pool-size>
           <password>data:text/plain;aes,v:S.ZFY0MEJJa3lBT0x2MGhtRQ==.wHVvWIqfp9k-b2tJXtmagw==.Er9yB7Rv9moHT4IxkdJtjA==.uRmxuFKAOFxut3IXbNclTnLG0gZWsiZ8TQV5TLEajKo=</password>
           <use-for-audit>true</use-for-audit>
           <username>postgres</username>

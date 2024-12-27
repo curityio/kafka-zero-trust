@@ -1,4 +1,4 @@
-import {OrderCreatedEventItem} from './orderCreatedEventItem';
+import {OrderCreatedEventItem} from './orderCreatedEventItem.js';
 
 /*
  * An event message received by the payments service

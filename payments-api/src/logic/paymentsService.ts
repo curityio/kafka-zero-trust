@@ -1,9 +1,9 @@
 import {Guid} from 'guid-typescript';
-import {authorizePayment} from '../infrastructure/authorizer';
-import {ClaimsPrincipal} from './claimsPrincipal';
-import {OrderCreatedEvent} from './orderCreatedEvent';
-import {calculateAmount} from './paymentCalculator';
-import {PaymentTransaction} from './paymentTransaction';
+import {authorizePayment} from '../infrastructure/authorizer.js';
+import {ClaimsPrincipal} from './claimsPrincipal.js';
+import {OrderCreatedEvent} from './orderCreatedEvent.js';
+import {calculateAmount} from './paymentCalculator.js';
+import {PaymentTransaction} from './paymentTransaction.js';
 
 const paymentTransactions: PaymentTransaction[] = [];
 

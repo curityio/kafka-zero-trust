@@ -1,5 +1,5 @@
 import express from 'express';
-import {PaymentServiceError} from './paymentServiceError';
+import {PaymentServiceError} from './paymentServiceError.js';
 
 /*
  * Basic API error logging

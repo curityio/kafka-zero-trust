@@ -1,11 +1,11 @@
 import express from 'express';
 import {createRemoteJWKSet, jwtVerify, JWTVerifyResult} from 'jose';
 import hash from 'js-sha256';
-import {ClaimsPrincipal} from '../logic/claimsPrincipal';
-import {OrderCreatedEvent} from '../logic/orderCreatedEvent';
-import {logError, sendClientResponse} from './exceptionHandler';
-import {oauthConfiguration} from './oauthConfiguration';
-import {PaymentServiceError} from './paymentServiceError';
+import {ClaimsPrincipal} from '../logic/claimsPrincipal.js';
+import {OrderCreatedEvent} from '../logic/orderCreatedEvent.js';
+import {logError, sendClientResponse} from './exceptionHandler.js';
+import {oauthConfiguration} from './oauthConfiguration.js';
+import {PaymentServiceError} from './paymentServiceError.js';
 
 const remoteJWKSet = createRemoteJWKSet(new URL(oauthConfiguration.jwksEndpoint));
 

@@ -1,11 +1,10 @@
 #
-# An initial setup based on the below blog post:
-# https://code.parts/2020/06/21/kafka-docker-compose-yml/
+# A demo OAuth deployment that includes Kafka components
 #
 
 services:
 
-#
+  #
   # The Curity Identity Server
   #
   curity-idsvr:
@@ -60,7 +59,7 @@ services:
   # Manages Kafka clustering
   #
   zookeeper:
-    image: confluentinc/cp-zookeeper:5.5.8
+    image: confluentinc/cp-zookeeper:7.8.0
     hostname: zookeeper
     container_name: zookeeper
     ports:
@@ -73,7 +72,7 @@ services:
   # The main Kafka system
   #
   kafka:
-    image: confluentinc/cp-server:5.5.8
+    image: confluentinc/cp-server:7.8.0
     hostname: kafka
     container_name: kafka
     depends_on:
@@ -92,7 +91,7 @@ services:
       KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
     healthcheck:
-      test: ["CMD", "kafka-topics", "--list", "--zookeeper", "zookeeper:2181"]
+      test: ["CMD", "kafka-topics", "--list", "--bootstrap-server", "kafka:9092"]
       interval: 5s
       timeout: 10s
       retries: 10
@@ -101,7 +100,7 @@ services:
   # Manages Kafka schemas for event messages
   #
   schema-registry:
-    image: confluentinc/cp-schema-registry:5.5.8
+    image: confluentinc/cp-schema-registry:7.8.0
     hostname: schema-registry
     container_name: schema-registry
     depends_on:
@@ -115,15 +114,14 @@ services:
 
   #
   # Wait for Kafka to come up and create topics
-  # https://code.parts/2020/06/21/kafka-docker-compose-yml/
   #
   create-topics:
-    image: confluentinc/cp-kafka:5.5.8
+    image: confluentinc/cp-kafka:7.8.0
     hostname: create-topics
     container_name: create-topics
     command: "
       bash -c 'cub kafka-ready -b kafka:9092 1 120 && \
-               kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic OrderCreated'"
+               kafka-topics --create --if-not-exists --bootstrap-server kafka:9092 --partitions 2 --replication-factor 1 --topic OrderCreated'"
     environment:
       KAFKA_BROKER_ID: ignored
       KAFKA_ZOOKEEPER_CONNECT: ignored

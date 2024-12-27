@@ -5,13 +5,13 @@ export class PaymentServiceError extends Error {
 
     private readonly status: number;
     private readonly code: string;
-    private readonly cause?: Error;
+    private readonly inner?: Error;
 
-    public constructor(status: number, code: string, message: string, cause?: any) {
+    public constructor(status: number, code: string, message: string, inner?: any) {
         super(message);
         this.status = status;
         this.code = code;
-        this.cause = cause;
+        this.inner = inner;
     }
 
     public getStatus(): number {
@@ -23,6 +23,6 @@ export class PaymentServiceError extends Error {
     }
 
     public getCause(): any {
-        return this.cause;
+        return this.inner;
     }
 }

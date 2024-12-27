@@ -1,4 +1,4 @@
-import {OrderCreatedEventItem} from './orderCreatedEventItem';
+import {OrderCreatedEventItem} from './orderCreatedEventItem.js';
 
 /*
  * Simulate money calculation
