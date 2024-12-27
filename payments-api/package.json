@@ -2,22 +2,27 @@
     "name": "payments-api",
     "version": "1.0.0",
     "description": "A Node.js API which consumes events with a JWT identity",
-    "scripts": {
-        "build": "rm -rf dist && tsc --sourceMap false",
-        "start": "IS_LOCAL=true ts-node --files src/index.ts"
-    },
     "author": "Curity AB",
     "license": "Apache-2.0",
-    "devDependencies": {
-        "@types/express": "^4.17.13",
-        "@types/node": "^17.0.23",
-        "ts-node": "^10.7.0"
+    "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "build": "rm -rf dist && tsc --sourceMap false",
+        "start": "IS_LOCAL=true tsx src/index.ts"
     },
     "dependencies": {
-        "express": "^4.17.3",
+        "express": "^4.21.2",
         "guid-typescript": "^1.0.9",
-        "jose": "^4.8.3",
-        "js-sha256": "^0.9.0",
-        "node-rdkafka": "^2.12.0"
+        "jose": "^5.9.6",
+        "js-sha256": "^0.11.0",
+        "node-fetch": "^3.3.2",
+        "node-rdkafka": "^3.2.1"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.30",
+        "tsx": "^4.19.2",
+        "typescript": "^5.7.2"
     }
 }

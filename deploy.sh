@@ -65,9 +65,46 @@ while [ "$RESULT" -ne '0' ]; do
 done
 
 #
-# Run local APIs if required
+# If APIs are deployed there is nothing left to do
 #
-if [ "$PROFILE" == 'LOCAL' ]; then
-    open -a Terminal orders-api/run.sh
-    open -a Terminal payments-api/run.sh
+if [ "$PROFILE" == 'DEPLOYED' ]; then
+  exit 0;
+fi
+
+#
+# Otherwise get the platform
+#
+case "$(uname -s)" in
+
+  Darwin)
+    PLATFORM="MACOS"
+ 	;;
+
+  MINGW64*)
+    PLATFORM="WINDOWS"
+	;;
+
+  Linux)
+    PLATFORM="LINUX"
+	;;
+esac
+
+#
+# Then run local APIs
+#
+if [ "$PLATFORM" == 'MACOS' ]; then
+
+  open -a Terminal ./orders-api/run.sh
+  open -a Terminal ./payments-api/run.sh
+
+elif [ "$PLATFORM" == 'WINDOWS' ]; then
+  
+  GIT_BASH="C:\Program Files\Git\git-bash.exe"
+  "$GIT_BASH" -c ./orders-api/run.sh &
+  "$GIT_BASH" -c ./payments-api/run.sh &
+
+elif [ "$PLATFORM" == 'LINUX' ]; then
+
+  gnome-terminal -- ./orders-api/run.sh
+  gnome-terminal -- ./payments-api/run.sh
 fi

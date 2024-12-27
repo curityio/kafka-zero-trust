@@ -1,23 +1,24 @@
 {
     "name": "console-client",
     "version": "1.0.0",
-    "description": "A simple Node.js console client which authenticates via the system browser",
-    "scripts": {
-        "start": "ts-node --files src/index.ts"
-    },
+    "description": "A simple Node.js console client which sends a user level access token to create an order",
     "author": "Curity AB",
     "license": "Apache-2.0",
-    "devDependencies": {
-        "@types/fs-extra": "^9.0.13",
-        "@types/node": "^17.0.23",
-        "@types/node-fetch": "^2.6.2",
-        "@types/url-parse": "^1.4.8",
-        "opener": "^1.5.2",
-        "ts-node": "^10.7.0"
+    "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "start": "tsx src/index.ts"
     },
     "dependencies": {
         "fs-extra": "^10.1.0",
-        "node-fetch": "^2.6.1",
-        "url-parse": "^1.5.10"
+        "opener": "^1.5.2",
+        "node-fetch": "^3.3.2"
+    },
+    "devDependencies": {
+        "@types/node": "^20.11.30",
+        "tsx": "^4.19.2",
+        "typescript": "^5.7.2"
     }
 }

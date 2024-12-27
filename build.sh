@@ -21,7 +21,7 @@ fi
 #
 # Build the Docker image for the API gateway
 #
-docker build --no-cache -f api-gateway/Dockerfile -t custom_kong:2.8.1-alpine .
+docker build --no-cache -f api-gateway/Dockerfile -t custom_kong:3.8
 if [ $? -ne 0 ]; then
   echo "Problem encountered building the API gateway Docker image"
   exit 1

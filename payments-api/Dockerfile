@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:20-alpine
 
 # https://github.com/Blizzard/node-rdkafka/blob/master/examples/docker-alpine.md
 RUN apk --no-cache add \
