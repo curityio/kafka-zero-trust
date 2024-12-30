@@ -146,7 +146,7 @@ The client gets an initial access token with a 15 minute expiry and multiple sco
   "delegationId": "e39a700d-3f3d-469e-a72f-aa02d55d5d54",
   "exp": 1657215870,
   "nbf": 1657215570,
-  "scope": "openid profile orders trigger_payments",
+  "scope": "openid profile orders payments",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
   "sub": "demouser",
   "aud": "api.example.com",
@@ -155,21 +155,24 @@ The client gets an initial access token with a 15 minute expiry and multiple sco
 }
 ```
 
-The Orders API makes a token exchange request to swap the client access token for a longer lived access token:
+The Orders API makes a token exchange request to adjust the original access token:
 
 ```text
 POST http://localhost:8443/oauth/v2/oauth-token
 
-grant_type=https://curity.se/grant/accesstoken
+grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &client_id=orders-api-client
 &client_secret=Password1
+&subject_token=eyJraWQiOiItMTcyNTQxNzE2NyIsIng...
+&subject_token_type=urn:ietf:params:oauth:token-type:access_token
 &scope=payments
-&token=eyJraWQiOiItMTcyNTQxNzE2NyIsIng...
-&order_transaction_id=1b6d215b-7ce2-4e0b-9079-f4e1266f57b1
+&audience=jobs.example.com
+&transaction_id=1b6d215b-7ce2-4e0b-9079-f4e1266f57b1
 &event_payload_hash=7e6d3d4b2608625f144f9c1a988da170504a368b647a6609ac4ec6c939496be1
 ```
 
-The Payments API then receives the following JWT access token payload with a 1 year lifetime and a single scope.\
+The Payments API then receives the following JWT access token payload.\
+The access token's audience and scope are updated and it has a 1 year lifetime.\
 The last two token claims bind it to the specific event, as a mechansim to ensure data integrity:
 
 ```json
@@ -178,13 +181,13 @@ The last two token claims bind it to the specific event, as a mechansim to ensur
   "delegationId": "e39a700d-3f3d-469e-a72f-aa02d55d5d54",
   "exp": 1688751570,
   "nbf": 1657215570,
-  "scope": "trigger_payments",
+  "scope": "payments",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
   "sub": "demouser",
-  "aud": "api.example.com",
+  "aud": "jobs.example.com",
   "iat": 1657215570,
   "purpose": "access_token",
-  "order_transaction_id": "1b6d215b-7ce2-4e0b-9079-f4e1266f57b1",
+  "transaction_id": "1b6d215b-7ce2-4e0b-9079-f4e1266f57b1",
   "event_payload_hash": "7e6d3d4b2608625f144f9c1a988da170504a368b647a6609ac4ec6c939496be1"
 }
 ```

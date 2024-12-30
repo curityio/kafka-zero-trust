@@ -53,12 +53,12 @@ docker compose --profile $PROFILE --project-name kakfa up --detach --remove-orph
 #
 echo 'Waiting for Kafka to come online ...'
 KAFKA_CONTAINER_ID=$(docker container ls | grep cp-server | awk '{print $1}')
-docker exec -it $KAFKA_CONTAINER_ID sh -c 'kafka-topics --list --bootstrap-server kafka:9092'
+docker exec -it $KAFKA_CONTAINER_ID sh -c 'kafka-topics --list --bootstrap-server kafka:9092' 1>/dev/null
 RESULT=$?
 while [ "$RESULT" -ne '0' ]; do
     sleep 2
     KAFKA_CONTAINER_ID=$(docker container ls | grep cp-server | awk '{print $1}')
-    docker exec -it $KAFKA_CONTAINER_ID sh -c 'kafka-topics --list --bootstrap-server kafka:9092'
+    docker exec -it $KAFKA_CONTAINER_ID sh -c 'kafka-topics --list --bootstrap-server kafka:9092' 1>/dev/null
     RESULT=$?
 done
 

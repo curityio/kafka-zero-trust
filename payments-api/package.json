@@ -10,7 +10,7 @@
     },
     "scripts": {
         "build": "rm -rf dist && tsc --sourceMap false",
-        "start": "IS_LOCAL=true tsx src/index.ts"
+        "start": "IS_LOCAL=true tsx watch src/index.ts"
     },
     "dependencies": {
         "express": "^4.21.2",

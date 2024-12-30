@@ -12,7 +12,7 @@ const tokenEndpoint = `${identityServerBaseUrl}/oauth-token`;
 const clientId = 'console-client';
 const loopbackPort = 3003;
 const redirectUri = `http://localhost:${loopbackPort}`;
-const scope = 'openid profile orders trigger_payments'
+const scope = 'openid profile orders payments'
 
 /*
  * Do a code flow login to authenticate and get a user level access token

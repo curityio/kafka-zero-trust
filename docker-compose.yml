@@ -19,7 +19,7 @@ services:
      - ./idsvr/log4j2.xml:/opt/idsvr/etc/log4j2.xml
     environment:
       PASSWORD: 'Password1'
-      LOGGING_LEVEL: 'DEBUG'
+      LOGGING_LEVEL: 'INFO'
 
   #
   # A SQL database used by the Curity Identity Server

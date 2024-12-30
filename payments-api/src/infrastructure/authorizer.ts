@@ -16,7 +16,7 @@ export async function authorizeHttpRequest(request: express.Request, response: e
 
     try {
         const accessToken = readAccessToken(request);
-        response.locals.claims = await authorize(accessToken);
+        response.locals.claims = await authorize(accessToken, oauthConfiguration.audienceHttp);
         next();
 
     } catch (e: any) {
@@ -28,14 +28,21 @@ export async function authorizeHttpRequest(request: express.Request, response: e
 }
 
 /*
- * Do JWT validation and create a claims principal
+ * Do JWT validation for async jobs
  */
-export async function authorize(accessToken: string): Promise<ClaimsPrincipal> {
+export async function authorizeJobs(accessToken: string) {
+    return await authorize(accessToken, oauthConfiguration.audienceAsyncJobs);
+}
+
+/*
+ * Common JWT validation and creation of the claims principal
+ */
+export async function authorize(accessToken: string, expectedAudience: string): Promise<ClaimsPrincipal> {
 
     const options = {
         algorithms: [oauthConfiguration.algorithm],
         issuer: oauthConfiguration.issuer,
-        audience: oauthConfiguration.audience,
+        audience: expectedAudience,
     };
     
     let result: JWTVerifyResult;
@@ -51,8 +58,8 @@ export async function authorize(accessToken: string): Promise<ClaimsPrincipal> {
     }
 
     // Read extended claims into the prinicipal if they exist
-    if (result.payload.order_transaction_id) {
-        claimsPrincipal.orderTransactionID = result.payload.order_transaction_id as string;
+    if (result.payload.transaction_id) {
+        claimsPrincipal.orderTransactionID = result.payload.transaction_id as string;
     }
 
     if (result.payload.event_payload_hash) {
@@ -83,7 +90,7 @@ function readAccessToken(request: express.Request): string {
  */
 export function authorizePayment(event: OrderCreatedEvent, claims: ClaimsPrincipal) {
 
-    if (claims.scope.indexOf('trigger_payments') === -1) {
+    if (claims.scope.indexOf('payments') === -1) {
         throw new PaymentServiceError(403, 'authorization_error', 'The token has insufficient scope');
     }
 

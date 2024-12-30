@@ -1,5 +1,5 @@
 import Kafka from 'node-rdkafka';
-import {authorize} from './authorizer.js';
+import {authorizeJobs} from './authorizer.js';
 import {createPaymentTransaction} from '../logic/paymentsService.js';
 import {logError} from './exceptionHandler.js';
 import {PaymentServiceError} from './paymentServiceError.js';
@@ -36,7 +36,7 @@ export async function startMessageBroker(): Promise<void> {
 
             try {
                 // Try the authorization
-                const claims = await authorize(orderEvent.accessToken);
+                const claims = await authorizeJobs(orderEvent.accessToken);
 
                 // Then process the payment
                 createPaymentTransaction(orderEvent, claims);

@@ -80,14 +80,17 @@ async function authorize(accessToken: string): Promise<ClaimsPrincipal> {
  */
 export async function tokenExchange(accessToken: string, orderTransactionID: string, eventPayloadHash: string): Promise<string> {
 
-    let body = 'grant_type=https://curity.se/grant/accesstoken';
+    // Supply standard token exchange parameters from RFC 8693
+    let body = 'grant_type=urn:ietf:params:oauth:grant-type:token-exchange';
     body += `&client_id=${oauthConfiguration.clientID}`;
     body += `&client_secret=${oauthConfiguration.clientSecret}`;
-    body += `&scope=trigger_payments`;
-    body += `&token=${accessToken}`;
-    
-    // These custom fields are include in the reduced scope token via a token procedure
-    body += `&order_transaction_id=${orderTransactionID}`;
+    body += `&subject_token=${accessToken}`;
+    body += '&subject_token_type=urn:ietf:params:oauth:token-type:access_token';
+    body += '&audience=jobs.example.com';
+    body += '&scope=payments';
+
+    // These custom claims are bound to the exchanged token to reduce its privileges
+    body += `&transaction_id=${orderTransactionID}`;
     body += `&event_payload_hash=${eventPayloadHash}`;
 
     try {
