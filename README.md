@@ -138,7 +138,7 @@ The user identity has flowed between microservices in a digitally verifiable way
 
 ## Security and Tokens
 
-The client gets an initial access token with a 15 minute expiry and multiple scopes:
+The client gets an initial access token with a 15 minute expiry and these token properties:
 
 ```json
 {
@@ -146,7 +146,7 @@ The client gets an initial access token with a 15 minute expiry and multiple sco
   "delegationId": "e39a700d-3f3d-469e-a72f-aa02d55d5d54",
   "exp": 1657215870,
   "nbf": 1657215570,
-  "scope": "openid profile orders payments",
+  "scope": "openid profile orders",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
   "sub": "demouser",
   "aud": "api.example.com",
@@ -155,7 +155,7 @@ The client gets an initial access token with a 15 minute expiry and multiple sco
 }
 ```
 
-The Orders API makes a token exchange request to adjust the original access token:
+The Orders API makes a token exchange request to with the original access token:
 
 ```text
 POST http://localhost:8443/oauth/v2/oauth-token
@@ -173,7 +173,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 
 The Payments API then receives the following JWT access token payload.\
 The access token's audience and scope are updated and it has a 1 year lifetime.\
-The last two token claims bind it to the specific event, as a mechansim to ensure data integrity:
+The last two token claims bind it to the specific event, as a mechansim to reduce token privileges:
 
 ```json
 {
@@ -192,7 +192,7 @@ The last two token claims bind it to the specific event, as a mechansim to ensur
 }
 ```
 
-The Payments API only receives tokens with this scope at a single endpoint.\
+The Payments API only receives tokens with th async jobs audience at its messaging endpoints.\
 The Payments API verifies that the event data matches that in the access token.\
 A malicious party cannot publish events since they do not have access to the JWT signing private key.\
 A malicious party cannot alter events since the event data would no longer match the claim in the JWT.
