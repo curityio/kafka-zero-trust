@@ -29,23 +29,27 @@ export async function startMessageBroker(): Promise<void> {
             consumer.subscribe(['OrderCreated']);
             consumer.consume();
         })
-        .on('data', async (message: any) => {
+        .on('data', async (message: Kafka.Message) => {
 
-            const orderEvent = JSON.parse(message.value.toString());
-            console.log(`Payments API is consuming an OrderCreated event ...`);
+            if (message.value) {
 
-            try {
-                // Try the authorization
-                const claims = await authorizeJobs(orderEvent.accessToken);
+                try {
 
-                // Then process the payment
-                createPaymentTransaction(orderEvent, claims);
+                    // Get the authorization header from the Kafka message and validate the access token
+                    const key = 'Authorization';
+                    const authorizationHeader = message.headers?.find((h) => h[key])?.[key]?.toString() || '';
+                    const claims = await authorizeJobs(authorizationHeader);
 
-            } catch (e: any) {
+                    // Then process the order event to create a payment transaction
+                    const orderEvent = JSON.parse(message.value.toString());
+                    createPaymentTransaction(orderEvent, claims);
 
-                // This code example logs the details and removes the message from the queue
-                const error = e as PaymentServiceError;
-                logError(error);
+                } catch (e: any) {
+
+                    // This code example logs the details and removes the message from the queue
+                    const error = e as PaymentServiceError;
+                    logError(error);
+                }
             }
         })
         .on('event.error', (e) => {

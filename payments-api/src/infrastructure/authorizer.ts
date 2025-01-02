@@ -1,6 +1,5 @@
 import express from 'express';
 import {createRemoteJWKSet, jwtVerify, JWTVerifyResult} from 'jose';
-import hash from 'js-sha256';
 import {ClaimsPrincipal} from '../logic/claimsPrincipal.js';
 import {OrderCreatedEvent} from '../logic/orderCreatedEvent.js';
 import {logError, sendClientResponse} from './exceptionHandler.js';
@@ -15,7 +14,7 @@ const remoteJWKSet = createRemoteJWKSet(new URL(oauthConfiguration.jwksEndpoint)
 export async function authorizeHttpRequest(request: express.Request, response: express.Response, next: express.NextFunction) {
 
     try {
-        const accessToken = readAccessToken(request);
+        const accessToken = readAccessToken(request.header('authorization') || '');
         response.locals.claims = await authorize(accessToken, oauthConfiguration.audienceHttp);
         next();
 
@@ -30,7 +29,9 @@ export async function authorizeHttpRequest(request: express.Request, response: e
 /*
  * Do JWT validation for async jobs
  */
-export async function authorizeJobs(accessToken: string) {
+export async function authorizeJobs(authorizationHeader: string) {
+
+    const accessToken = readAccessToken(authorizationHeader);
     return await authorize(accessToken, oauthConfiguration.audienceAsyncJobs);
 }
 
@@ -45,36 +46,38 @@ export async function authorize(accessToken: string, expectedAudience: string): 
         audience: expectedAudience,
     };
     
+    // Do standard JWT validation
     let result: JWTVerifyResult;
     try {
         result = await jwtVerify(accessToken, remoteJWKSet, options);
     } catch (e: any) {
-        throw new PaymentServiceError(401, 'authentication_error', 'Missing, invalid or expired access token', e);
+        throw new PaymentServiceError(401, 'invalid_token', 'Missing, invalid or expired access token', e);
     }
 
-    const claimsPrincipal: ClaimsPrincipal = {
+    // Check for the required scope
+    const scope = (result.payload.scope as string).split(' ');
+    if (scope.indexOf('payments') === -1) {
+        throw new PaymentServiceError(403, 'insufficient_scope', 'The access token has insufficient scope');
+    }
+
+    // Also check for required claims
+    if (!result.payload.event_id || !result.payload.transaction_id) {
+        throw new PaymentServiceError(403, 'insufficient_claims', 'The access token does not have the required claims');
+    }
+
+    return {
         userID: result.payload.sub as string,
-        scope: (result.payload.scope as string).split(' '),
-    }
-
-    // Read extended claims into the prinicipal if they exist
-    if (result.payload.transaction_id) {
-        claimsPrincipal.orderTransactionID = result.payload.transaction_id as string;
-    }
-
-    if (result.payload.event_payload_hash) {
-        claimsPrincipal.eventPayloadHash = result.payload.event_payload_hash as string;
-    }
-
-    return claimsPrincipal;
+        scope,
+        eventID: result.payload.event_id as string,
+        orderTransactionID: result.payload.transaction_id as string,
+    };
 }
 
 /*
  * Read the token from the bearer header when required
  */
-function readAccessToken(request: express.Request): string {
+function readAccessToken(authorizationHeader: string): string {
 
-    const authorizationHeader = request.header('authorization');
     if (authorizationHeader) {
         const parts = authorizationHeader.split(' ');
         if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
@@ -94,14 +97,13 @@ export function authorizePayment(event: OrderCreatedEvent, claims: ClaimsPrincip
         throw new PaymentServiceError(403, 'authorization_error', 'The token has insufficient scope');
     }
 
-    // The payload of the event must match that from the access token
-    const eventPayloadHash = hash.sha256(JSON.stringify(event.payload));
-    if (claims.eventPayloadHash != eventPayloadHash) {
-        throw new PaymentServiceError(403, 'invalid_event_message', 'The event message contains an unexpected payload');
+    // The access token can only be used for the current event message
+    if (claims.eventID != event.eventID) {
+        throw new PaymentServiceError(403, 'invalid_message', 'The event message has invalid data');
     }
 
-    // The transaction ID from the event must match that from the access token
-    if (claims.orderTransactionID !== event.payload.orderTransactionID) {
-        throw new PaymentServiceError(403, 'invalid_event_transaction', 'The event message contain unexpected transaction data');
+    // The access token can only be used for a single transaction ID
+    if (claims.orderTransactionID !== event.orderTransactionID) {
+        throw new PaymentServiceError(403, 'invalid_message', 'The event message has invalid data');
     }
 }

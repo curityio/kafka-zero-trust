@@ -35,10 +35,8 @@ export function startHttpServer(producer: Kafka.Producer) {
         try {
         
             const orderTransaction = createOrderTransaction(request.body.items, response.locals.claims);
-
             await publishOrderCreated(orderTransaction, readAccessToken(request), producer);
-            console.log('Orders API published an OrderCreated event ...');
-
+            
             response.setHeader('content-type', 'application/json');
             response.status(201).send(JSON.stringify(orderTransaction));
 

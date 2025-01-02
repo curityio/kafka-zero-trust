@@ -6,6 +6,6 @@ import {OrderCreatedEventItem} from './orderCreatedEventItem.js';
 export function calculateAmount(items: OrderCreatedEventItem[]): number {
 
     let total = 0;
-    items.forEach(i => total += i.price)
+    items.forEach(i => total += i.quantity * i.price)
     return total;
 }

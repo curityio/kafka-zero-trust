@@ -2,9 +2,9 @@
 
 A project to demonstrate event based messaging between APIs with zero trust:
 
-- Publishing APIs include a long lived reduced privilege access token in event messages
-- Consuming APIs validate the access token before processing event messages
-- Identity thus flows securely, and data integrity of event messages is also guaranteed
+- Publishing APIs include a long lived reduced privilege access token in event messages.
+- Consuming APIs validate the access token before processing event messages.
+- User identity and other secure values flows securely between async APIs.
 
 This code example uses [Apache Kafka](https://kafka.apache.org/) for event based messaging.
 
@@ -23,7 +23,7 @@ The solution provides two simple Node.js microservices and some deployment resou
 First ensure that these prerequisites are installed:
 
 - [Docker](https://www.docker.com/products/docker-desktop/)
-- [Node.js](https://nodejs.org/en/download/)
+- [Node.js 20 or higher](https://nodejs.org/en/download/)
 
 Also get a `license.json` file for the Curity Identity Server and copy it to the `idsvr` folder:
 
@@ -89,9 +89,9 @@ The Orders API then saves the transaction in its own data as follows:
 
 ```json
 {
-  "orderTransactionID": "1b6d215b-7ce2-4e0b-9079-f4e1266f57b1",
+  "orderTransactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
   "userID": "demouser",
-  "utcTime": "2022-07-07T17:39:30.280Z",
+  "utcTime": "2025-01-02T10:23:56.258Z",
   "items": [
     {
       "itemID": 3,
@@ -102,43 +102,42 @@ The Orders API then saves the transaction in its own data as follows:
 }
 ```
 
-The Orders API then performs a token exchange and publishes an `OrderCreated` event with the following structure:
+The Orders API then performs a token exchange and publishes an `OrderCreated` event with the following structure.\
+The event message's headers includes the long lived access token with the user identity.
 
 ```json
 {
-  "accessToken": "eyJraWQiOiItMTcyNT ...",
-  "payload": {
-    "orderTransactionID": "1b6d215b-7ce2-4e0b-9079-f4e1266f57b1",
-    "userID": "demouser",
-    "utcTime": 1657215570280,
-    "items": [
-      {
-        "itemID": 3,
-        "quantity": 3,
-        "price": 100
-      }
-    ]
-  }
+  "eventID": "e80be47d-7282-4f3c-898a-709ca5393aa5",
+  "orderTransactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
+  "utcTime": "2025-01-02T10:23:56.258Z",
+  "items": [
+    {
+      "itemID": 3,
+      "quantity": 3,
+      "price": 100
+    }
+  ]
 }
 ```
 
 The Payments API consumes the event and validates the JWT access token before processing it.\
-The Payments API then saves the transaction in its own data in the following format.\
-The user identity has flowed between microservices in a digitally verifiable way, and can be audited:
+The Payments API then saves the transaction in its own data in the following format:
 
 ```json
+Creating Payment Transaction ...
 {
-  "paymentTransactionID": "f093c858-d7c8-8ca4-2437-dbb6498c14b2",
-  "orderTransactionID": "1b6d215b-7ce2-4e0b-9079-f4e1266f57b1",
+  "paymentTransactionID": "de4cf62a-5229-4349-9cb8-6b143d7e3e27",
+  "orderTransactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
   "userID": "demouser",
-  "utcTime": "2022-07-07T17:39:31.444Z",
-  "amount": 100
+  "utcTime": "2025-01-02T10:24:11.786Z",
+  "amount": 300
 }
 ```
 
 ## Security and Tokens
 
-The client gets an initial access token with a 15 minute expiry and these token properties:
+The client gets a normal access token with a 15 minute expiry and these token properties.\
+The audience and scope allows the token to be sent to the Orders API.
 
 ```json
 {
@@ -155,7 +154,8 @@ The client gets an initial access token with a 15 minute expiry and these token 
 }
 ```
 
-The Orders API makes a token exchange request to with the original access token:
+The Orders API makes a token exchange request with the original access token.\
+The Orders API has access to the Payments scope but the authorization server requires the Orders API to send extra identifiers.
 
 ```text
 POST http://localhost:8443/oauth/v2/oauth-token
@@ -167,13 +167,13 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &subject_token_type=urn:ietf:params:oauth:token-type:access_token
 &scope=payments
 &audience=jobs.example.com
-&transaction_id=1b6d215b-7ce2-4e0b-9079-f4e1266f57b1
-&event_payload_hash=7e6d3d4b2608625f144f9c1a988da170504a368b647a6609ac4ec6c939496be1
+&transaction_id=6b69df74-339f-416b-84bb-f1f4f32d8f1a
+&event_id=e80be47d-7282-4f3c-898a-709ca5393aa5
 ```
 
 The Payments API then receives the following JWT access token payload.\
-The access token's audience and scope are updated and it has a 1 year lifetime.\
-The last two token claims bind it to the specific event, as a mechansim to reduce token privileges:
+The audience of `jobs.example.com` is accepted at the API's messaging endpoints.\
+The access token is bound to an exact event message and transaction to restrict its privileges.
 
 ```json
 {
@@ -187,15 +187,10 @@ The last two token claims bind it to the specific event, as a mechansim to reduc
   "aud": "jobs.example.com",
   "iat": 1657215570,
   "purpose": "access_token",
-  "transaction_id": "1b6d215b-7ce2-4e0b-9079-f4e1266f57b1",
-  "event_payload_hash": "7e6d3d4b2608625f144f9c1a988da170504a368b647a6609ac4ec6c939496be1"
+  "transaction_id": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
+  "event_id": "e80be47d-7282-4f3c-898a-709ca5393aa5"
 }
 ```
-
-The Payments API only receives tokens with th async jobs audience at its messaging endpoints.\
-The Payments API verifies that the event data matches that in the access token.\
-A malicious party cannot publish events since they do not have access to the JWT signing private key.\
-A malicious party cannot alter events since the event data would no longer match the claim in the JWT.
 
 ## Further Information
 

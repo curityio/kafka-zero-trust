@@ -10,13 +10,11 @@
     },
     "scripts": {
         "build": "rm -rf dist && tsc --sourceMap false",
-        "start": "IS_LOCAL=true tsx watch src/index.ts"
+        "start": "IS_LOCAL=true tsx src/index.ts"
     },
     "dependencies": {
         "express": "^4.21.2",
-        "guid-typescript": "^1.0.9",
         "jose": "^5.9.6",
-        "js-sha256": "^0.11.0",
         "node-fetch": "^3.3.2",
         "node-rdkafka": "^3.2.1"
     },

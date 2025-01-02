@@ -1,4 +1,4 @@
-import {Guid} from 'guid-typescript';
+import {randomUUID} from 'crypto';
 import {authorizePayment} from '../infrastructure/authorizer.js';
 import {ClaimsPrincipal} from './claimsPrincipal.js';
 import {OrderCreatedEvent} from './orderCreatedEvent.js';
@@ -14,19 +14,20 @@ export function createPaymentTransaction(event: OrderCreatedEvent, claims: Claim
 
     authorizePayment(event, claims);
 
-    console.log('Consuming OrderCreated Event ...');
+    console.debug('Consuming OrderCreated Event ...');
+    console.debug(JSON.stringify(event, null, 2));
 
     const paymentTransaction = {
-        paymentTransactionID: Guid.create().toString(),
+        paymentTransactionID: randomUUID(),
         orderTransactionID: claims.orderTransactionID!,
         userID: claims.userID,
         utcTime: new Date(),
-        amount: calculateAmount(event.payload.items),
+        amount: calculateAmount(event.items),
     }
 
     // Show some debug output to visualize how data flows in a verifiable way
-    console.log('Creating Payment Transaction ...');
-    console.log(JSON.stringify(paymentTransaction, null, 2));
+    console.debug('Creating Payment Transaction ...');
+    console.debug(JSON.stringify(paymentTransaction, null, 2));
         
     paymentTransactions.push(paymentTransaction);
     return paymentTransaction;
