@@ -155,7 +155,8 @@ The audience and scope allows the token to be sent to the Orders API.
 
 The Orders API makes a token exchange request with the original access token.\
 The Orders API upscopes the token to get a `trigger_invoicing` access token, with limited invoicing privileges.\
-The authorization server requires the Orders API to send extra identifiers to lock down the token.
+Secure values like user and transaction IDs are sent in the access token to keep them verifiable and auditable.\
+The access token is also bound to a precise transaction ID and event ID to reduce its privileges.
 
 ```text
 POST http://localhost:8443/oauth/v2/oauth-token
