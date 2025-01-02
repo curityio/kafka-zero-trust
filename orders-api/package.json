@@ -1,7 +1,7 @@
 {
     "name": "orders-api",
     "version": "1.0.0",
-    "description": "A Node.js API which publishes events with a JWT identity",
+    "description": "A Node.js API which publishes events with a long lived restricted privilege JWT access token",
     "author": "Curity AB",
     "license": "Apache-2.0",
     "type": "module",

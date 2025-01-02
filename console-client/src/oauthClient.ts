@@ -1,6 +1,6 @@
 import Http from 'http';
 import fetch from 'node-fetch'
-import Opener from 'opener';
+import open from 'open';
 import {generateHash, generateRandomString} from './cryptoUtils';
 
 /*
@@ -11,8 +11,8 @@ const authorizationEndpoint = `${identityServerBaseUrl}/oauth-authorize`;
 const tokenEndpoint = `${identityServerBaseUrl}/oauth-token`;
 const clientId = 'console-client';
 const loopbackPort = 3003;
-const redirectUri = `http://localhost:${loopbackPort}`;
-const scope = 'openid profile orders payments'
+const redirectUri = `http://127.0.0.1:${loopbackPort}`;
+const scope = 'openid profile orders'
 
 /*
  * Do a code flow login to authenticate and get a user level access token
@@ -57,7 +57,7 @@ export async function login(): Promise<string> {
         server.listen(loopbackPort);
         
         // Open the system browser to begin authentication
-        Opener(authorizationUrl);
+        open(authorizationUrl);
     });
 }
 
@@ -70,7 +70,7 @@ function buildAuthorizationUrl(state: string, codeChallenge: string): string {
     url += `?client_id=${encodeURIComponent(clientId)}`;
     url += `&redirect_uri=${encodeURIComponent(redirectUri)}`;
     url += '&response_type=code';
-    url += `&scope=${scope}`;
+    url += `&scope=${encodeURIComponent(scope)}`;
     url += `&state=${encodeURIComponent(state)}`;
     url += `&code_challenge=${encodeURIComponent(codeChallenge)}`;
     url += '&code_challenge_method=S256';

@@ -13,8 +13,9 @@
     },
     "dependencies": {
         "fs-extra": "^10.1.0",
-        "opener": "^1.5.2",
-        "node-fetch": "^3.3.2"
+        "node-fetch": "^3.3.2",
+        "open": "^10.1.0",
+        "opener": "^1.5.2"
     },
     "devDependencies": {
         "@types/node": "^20.11.30",

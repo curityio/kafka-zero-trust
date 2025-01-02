@@ -317,7 +317,7 @@
                 <id>console-client</id>
                 <client-name>console-client</client-name>
                 <no-authentication>true</no-authentication>
-                <redirect-uris>http://localhost:3003</redirect-uris>
+                <redirect-uris>http://127.0.0.1:3003</redirect-uris>
                 <proof-key>
                   <require-proof-key>true</require-proof-key>
                 </proof-key>
