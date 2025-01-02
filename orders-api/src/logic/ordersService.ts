@@ -16,7 +16,7 @@ export function createOrderTransaction(items: OrderItem[], claims: ClaimsPrincip
 
     calculatePrices(items);
     const orderTransaction = {
-        orderTransactionID: randomUUID(),
+        transactionID: randomUUID(),
         userID: claims.userID,
         utcTime: new Date(),
         items,
@@ -35,11 +35,11 @@ export async function publishOrderCreated(orderTransaction: OrderTransaction, ac
 
     console.debug('Performing Token Exchange ...');
     const eventID = randomUUID();
-    const longLivedReducedScopeAccessToken = await tokenExchange(accessToken, eventID, orderTransaction.orderTransactionID);
+    const longLivedReducedScopeAccessToken = await tokenExchange(accessToken, eventID, orderTransaction.transactionID);
 
     const orderCreatedEvent = {
         eventID,
-        orderTransactionID: orderTransaction.orderTransactionID,
+        transactionID: orderTransaction.transactionID,
         utcTime: orderTransaction.utcTime,
         items: orderTransaction.items,
     } as OrderCreatedEvent;

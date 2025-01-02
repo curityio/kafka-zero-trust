@@ -16,6 +16,6 @@ export function startHttpServer() {
      */
     const port = '3002';
     app.listen(port, () => {
-        console.log(`Payments API is listening on HTTP port ${port} ...`);
+        console.log(`Invoices API is listening on HTTP port ${port} ...`);
     });
 }

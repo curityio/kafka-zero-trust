@@ -151,7 +151,7 @@
               <claims>zoneinfo</claims>
             </scope>
             <scope>
-              <id>payments</id>
+              <id>trigger_invoicing</id>
             </scope>
           </scopes>
           <claims>
@@ -348,7 +348,7 @@
                 <secret>$5$Jivs3cNjoJJaw.vZ$AGmVCr5K0MFxwtomI32cczZtkD2VO9eg.3umg.kSdZ1</secret>
                 <audience>api.example.com</audience>
                 <scope>orders</scope>
-                <scope>payments</scope>
+                <scope>trigger_invoicing</scope>
                 <capabilities>
                   <oauth-token-exchange/>
                 </capabilities>

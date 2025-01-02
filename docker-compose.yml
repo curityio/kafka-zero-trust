@@ -139,11 +139,11 @@ services:
      - DEPLOYED
     
   #
-  # The payments API, which consumes events with a verifiable JWT identity
+  # The invoices API, which consumes events with a verifiable JWT identity
   #
-  payments-api:
-    image: payments-api:1.0.0
-    hostname: paymentsapi
+  invoices-api:
+    image: invoices-api:1.0.0
+    hostname: invoicesapi
     depends_on:
       kafka:
         condition: service_healthy

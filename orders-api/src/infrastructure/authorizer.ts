@@ -66,14 +66,14 @@ async function authorize(accessToken: string): Promise<ClaimsPrincipal> {
 
     // Check for the required scope
     const scope = (result.payload.scope as string).split(' ');
-    if (scope.indexOf('orders') === -1) {
+    if (scope.indexOf(oauthConfiguration.scope) === -1) {
         throw new OrderServiceError(403, 'insufficient_scope', 'The access token has insufficient scope');
     }
 
     const claimsPrincipal: ClaimsPrincipal = {
         userID: result.payload.sub as string,
         scope,
-    }
+    };
 
     if (claimsPrincipal.scope.indexOf('orders') === -1) {
         throw new OrderServiceError(403, 'authorization_error', 'The token has insufficient scope')
@@ -85,7 +85,7 @@ async function authorize(accessToken: string): Promise<ClaimsPrincipal> {
 /*
  * Do a token exchange to get a reduced scope access token to include in the event published to the message broker
  */
-export async function tokenExchange(accessToken: string, eventID: string, orderTransactionID: string): Promise<string> {
+export async function tokenExchange(accessToken: string, eventID: string, transactionID: string): Promise<string> {
 
     // Supply standard token exchange parameters from RFC 8693
     let body = 'grant_type=urn:ietf:params:oauth:grant-type:token-exchange';
@@ -94,11 +94,11 @@ export async function tokenExchange(accessToken: string, eventID: string, orderT
     body += `&subject_token=${accessToken}`;
     body += '&subject_token_type=urn:ietf:params:oauth:token-type:access_token';
     body += '&audience=jobs.example.com';
-    body += '&scope=payments';
+    body += '&scope=trigger_invoicing';
 
     // Send custom fields to bind the exchanged token to exact identifiers to reduce token privileges
     body += `&event_id=${eventID}`;
-    body += `&transaction_id=${orderTransactionID}`;
+    body += `&transaction_id=${transactionID}`;
 
     try {
     

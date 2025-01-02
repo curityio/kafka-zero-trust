@@ -12,7 +12,7 @@ This code example uses [Apache Kafka](https://kafka.apache.org/) for event based
 
 To demonstrate the approach, the code example uses a flow where a user facing app triggers a purchase.\
 The user facing app calls an Orders API which publishes an event to a message broker.\
-A Payments API then consumes the event and makes additional security checks before processing the data.\
+An Invoices API then consumes the event and makes additional security checks before processing the data.\
 The following diagram illustrates the components involved and the key behaviors:
 
 ![Components](./doc/components.svg)
@@ -48,18 +48,18 @@ npm install
 npm start
 ```
 
-The client will run a code flow that opens the system browser, to get a user level access token.\
+The client will run a code flow that opens the system browser.\
 Sign in as `demouser / Password1` to get the initial user level access token:
 
 ![Login](./doc/login.png)
 
 The console client then simply calls the Orders API to create an order transaction and exits.\
-Meanwhile the Orders API raises a secure event consumed by the Payments API.
+Meanwhile the Orders API raises a secure event consumed at a later time by the Invoices API.
 
 ## URLs
 
 The following external URLs are available on the development computer.\
-The payments service and Apache Kafka run inside the cluster.
+The Invoices API and Apache Kafka run inside the cluster.
 
 | Component | Location |
 | --------- | -------- |
@@ -85,11 +85,11 @@ This request includes an access token that is verified in the standard way:
 }
 ```
 
-The Orders API then saves the transaction in its own data as follows:
+The Orders API then calculates prices and saves the transaction in its own data as follows:
 
 ```json
 {
-  "orderTransactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
+  "transactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
   "userID": "demouser",
   "utcTime": "2025-01-02T10:23:56.258Z",
   "items": [
@@ -103,12 +103,12 @@ The Orders API then saves the transaction in its own data as follows:
 ```
 
 The Orders API then performs a token exchange and publishes an `OrderCreated` event with the following structure.\
-The event message's headers includes the long lived access token with the user identity.
+The long lived access token (which also identifies the user) is sent in the event message's headers:
 
 ```json
 {
   "eventID": "e80be47d-7282-4f3c-898a-709ca5393aa5",
-  "orderTransactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
+  "transactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
   "utcTime": "2025-01-02T10:23:56.258Z",
   "items": [
     {
@@ -120,13 +120,13 @@ The event message's headers includes the long lived access token with the user i
 }
 ```
 
-The Payments API consumes the event and validates the JWT access token before processing it.\
-The Payments API then saves the transaction in its own data in the following format:
+The Invoices API consumes the event and validates the JWT access token before processing it.\
+The Invoices API then saves the transaction in its own data in the following format:
 
 ```json
 {
-  "paymentTransactionID": "de4cf62a-5229-4349-9cb8-6b143d7e3e27",
-  "orderTransactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
+  "invoiceID": "de4cf62a-5229-4349-9cb8-6b143d7e3e27",
+  "transactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
   "userID": "demouser",
   "utcTime": "2025-01-02T10:24:11.786Z",
   "amount": 300
@@ -154,7 +154,7 @@ The audience and scope allows the token to be sent to the Orders API.
 ```
 
 The Orders API makes a token exchange request with the original access token.\
-The Orders API upscopes the token to perform a Payment operation.\
+The Orders API upscopes the token to get a `trigger_invoicing` access token, with limited invoicing privileges.\
 The authorization server requires the Orders API to send extra identifiers to lock down the token.
 
 ```text
@@ -165,15 +165,15 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 &client_secret=Password1
 &subject_token=eyJraWQiOiItMTcyNTQxNzE2NyIsIng...
 &subject_token_type=urn:ietf:params:oauth:token-type:access_token
-&scope=payments
+&scope=trigger_invoicing
 &audience=jobs.example.com
 &transaction_id=6b69df74-339f-416b-84bb-f1f4f32d8f1a
 &event_id=e80be47d-7282-4f3c-898a-709ca5393aa5
 ```
 
-The Payments API then receives the following JWT access token payload.\
-The audience of `jobs.example.com` is accepted at the API's messaging endpoints.\
-The access token is bound to a precise event message and a single order transaction.
+The Invoices API then receives the following JWT access token payload.\
+The audience of `jobs.example.com` and the `trigger_invoicing` are only accepted at messaging endpoints.\
+The access token is bound to a precise event message and a precise order transaction.
 
 ```json
 {
@@ -181,7 +181,7 @@ The access token is bound to a precise event message and a single order transact
   "delegationId": "e39a700d-3f3d-469e-a72f-aa02d55d5d54",
   "exp": 1688751570,
   "nbf": 1657215570,
-  "scope": "payments",
+  "scope": "trigger_invoicing",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
   "sub": "demouser",
   "aud": "jobs.example.com",

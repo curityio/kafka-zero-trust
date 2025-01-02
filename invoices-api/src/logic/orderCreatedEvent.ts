@@ -1,11 +1,11 @@
 import {OrderCreatedEventItem} from './orderCreatedEventItem.js';
 
 /*
- * An event message received by the payments service
+ * The event message received by the invoices service
  */
 export interface OrderCreatedEvent {
     eventID: string;
-    orderTransactionID: string;
+    transactionID: string;
     utcTime: number;
     items: OrderCreatedEventItem[];
 }

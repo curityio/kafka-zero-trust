@@ -1,8 +1,8 @@
 import Kafka from 'node-rdkafka';
-import {authorizeJobs} from './authorizer.js';
-import {createPaymentTransaction} from '../logic/paymentsService.js';
+import {authorizeInvoiceJob, authorizeJobsRequest} from './authorizer.js';
+import {createInvoiceJob} from '../logic/invoicingService.js';
 import {logError} from './exceptionHandler.js';
-import {PaymentServiceError} from './paymentServiceError.js';
+import {InvoiceServiceError} from './invoiceServiceError.js';
 
 /*
  * Set up the message broker ready for consuming
@@ -10,22 +10,22 @@ import {PaymentServiceError} from './paymentServiceError.js';
 export async function startMessageBroker(): Promise<void> {
 
     const host = process.env.IS_LOCAL ? 'localhost:29092' : 'kafka:9092';
-    console.log('Payments API is waiting for the message broker ...');
+    console.log('Invoices API is waiting for the message broker ...');
     
     if (!process.env.IS_LOCAL) {
         await waitForMessageBroker();
     }
 
     const consumer = new Kafka.KafkaConsumer({
-        'group.id': 'payments-api-consumer',
-        'client.id': 'payments-api-consumer',
+        'group.id': 'invoices-api-consumer',
+        'client.id': 'invoices-api-consumer',
         'metadata.broker.list': host,
         event_cb: true,
       }, {});
     consumer
         .on('ready', () => {
 
-            console.log('Payments API Consumer is ready ...');
+            console.log('Invoices API Consumer is ready ...');
             consumer.subscribe(['OrderCreated']);
             consumer.consume();
         })
@@ -38,23 +38,24 @@ export async function startMessageBroker(): Promise<void> {
                     // Get the authorization header from the Kafka message and validate the access token
                     const key = 'Authorization';
                     const authorizationHeader = message.headers?.find((h) => h[key])?.[key]?.toString() || '';
-                    const claims = await authorizeJobs(authorizationHeader);
+                    const claims = await authorizeJobsRequest(authorizationHeader);
 
-                    // Then process the order event to create a payment transaction
+                    // Implement business authorization and then process the order event to create an invoice
                     const orderEvent = JSON.parse(message.value.toString());
-                    createPaymentTransaction(orderEvent, claims);
+                    authorizeInvoiceJob(orderEvent, claims);
+                    createInvoiceJob(orderEvent, claims);
 
                 } catch (e: any) {
 
-                    // This code example logs the details and removes the message from the queue
-                    const error = e as PaymentServiceError;
+                    // Log invalid messages and remove them from the queue
+                    const error = e as InvoiceServiceError;
                     logError(error);
                 }
             }
         })
         .on('event.error', (e) => {
 
-            const error = new PaymentServiceError(500, 'event_error', 'A problem was encountered with the message broker', e);
+            const error = new InvoiceServiceError(500, 'event_error', 'A problem was encountered with the message broker', e);
             logError(error);
         });
     await connect_async(consumer);

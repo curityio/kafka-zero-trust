@@ -39,10 +39,10 @@ cd ..
 #
 # Install dependencies
 #
-cd payments-api
+cd invoices-api
 npm install
 if [ $? -ne 0 ]; then
-    echo "Problem encountered installing Payments API dependencies"
+    echo "Problem encountered installing Invoices API dependencies"
     exit 1
 fi
 cd ..
@@ -72,17 +72,17 @@ if [ "$PROFILE" == 'DEPLOYED' ]; then
   cd ..
 
   #
-  # Build the Payments API  Docker image
+  # Build the Invoices API  Docker image
   #
-  cd payments-api
+  cd invoices-api
   npm run build
   if [ $? -ne 0 ]; then
-    echo "Problem encountered building Payments API code"
+    echo "Problem encountered building Invoices API code"
     exit 1
   fi
 
   if [ "$PROFILE" == 'DEPLOYED' ]; then
-    docker build -t payments-api:1.0.0 .
+    docker build -t invoices-api:1.0.0 .
     if [ $? -ne 0 ]; then
       echo "Problem encountered building the Orders API Docker image"
       exit 1

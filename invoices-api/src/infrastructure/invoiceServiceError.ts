@@ -1,7 +1,7 @@
 /*
  * A custom error class for this API
  */
-export class PaymentServiceError extends Error {
+export class InvoiceServiceError extends Error {
 
     private readonly status: number;
     private readonly code: string;

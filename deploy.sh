@@ -93,16 +93,16 @@ esac
 if [ "$PLATFORM" == 'MACOS' ]; then
 
   open -a Terminal ./orders-api/run.sh
-  open -a Terminal ./payments-api/run.sh
+  open -a Terminal ./invoices-api/run.sh
 
 elif [ "$PLATFORM" == 'WINDOWS' ]; then
   
   GIT_BASH="C:\Program Files\Git\git-bash.exe"
   "$GIT_BASH" -c ./orders-api/run.sh &
-  "$GIT_BASH" -c ./payments-api/run.sh &
+  "$GIT_BASH" -c ./invoices-api/run.sh &
 
 elif [ "$PLATFORM" == 'LINUX' ]; then
 
   gnome-terminal -- ./orders-api/run.sh
-  gnome-terminal -- ./payments-api/run.sh
+  gnome-terminal -- ./invoices-api/run.sh
 fi
