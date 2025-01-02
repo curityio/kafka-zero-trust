@@ -124,7 +124,6 @@ The Payments API consumes the event and validates the JWT access token before pr
 The Payments API then saves the transaction in its own data in the following format:
 
 ```json
-Creating Payment Transaction ...
 {
   "paymentTransactionID": "de4cf62a-5229-4349-9cb8-6b143d7e3e27",
   "orderTransactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
@@ -136,7 +135,7 @@ Creating Payment Transaction ...
 
 ## Security and Tokens
 
-The client gets a normal access token with a 15 minute expiry and these token properties.\
+The client gets a normal access token with a 15 minute expiry similar to the following example.\
 The audience and scope allows the token to be sent to the Orders API.
 
 ```json
@@ -155,7 +154,8 @@ The audience and scope allows the token to be sent to the Orders API.
 ```
 
 The Orders API makes a token exchange request with the original access token.\
-The Orders API has access to the Payments scope but the authorization server requires the Orders API to send extra identifiers.
+The Orders API upscopes the token to perform a Payment operation.\
+The authorization server requires the Orders API to send extra identifiers to lock down the token.
 
 ```text
 POST http://localhost:8443/oauth/v2/oauth-token
@@ -173,7 +173,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 
 The Payments API then receives the following JWT access token payload.\
 The audience of `jobs.example.com` is accepted at the API's messaging endpoints.\
-The access token is bound to an exact event message and transaction to restrict its privileges.
+The access token is bound to a precise event message and a single order transaction.
 
 ```json
 {
