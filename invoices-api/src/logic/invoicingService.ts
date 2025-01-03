@@ -7,9 +7,9 @@ import {Invoice} from './invoice.js';
 const invoices: Invoice[] = [];
 
 /*
- * The job to create an invoice
+ * Does the work to create an invoice
  */
-export function createInvoiceJob(event: OrderCreatedEvent, claims: ClaimsPrincipal): Invoice {
+export function createInvoice(event: OrderCreatedEvent, claims: ClaimsPrincipal): Invoice {
 
     console.debug('Consuming OrderCreated Event ...');
     console.debug(JSON.stringify(event, null, 2));

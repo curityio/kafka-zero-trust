@@ -24,15 +24,44 @@ export function readAccessToken(request: express.Request): string {
 
     return '';
 }
-
 /*
  * Do JWT validation for HTTP requests
  */
-export async function authorizeHttpRequest(request: express.Request, response: express.Response, next: express.NextFunction) {
+export async function validateAccessToken(request: express.Request, response: express.Response, next: express.NextFunction) {
 
     try {
         const accessToken = readAccessToken(request);
-        response.locals.claims = await authorize(accessToken);
+        
+        const options = {
+            algorithms: [oauthConfiguration.algorithm],
+            issuer: oauthConfiguration.issuer,
+            audience: oauthConfiguration.audience,
+        };
+    
+        // Do standard JWT validation
+        let result: JWTVerifyResult;
+        try {
+            result = await jwtVerify(accessToken, remoteJWKSet, options);
+        } catch (e: any) {
+            throw new OrderServiceError(401, 'authentication_error', 'Missing, invalid or expired access token', e)
+        }
+    
+        // Check for the required scope
+        const scope = (result.payload.scope as string).split(' ');
+        if (scope.indexOf(oauthConfiguration.scope) === -1) {
+            throw new OrderServiceError(403, 'insufficient_scope', 'The access token has insufficient scope');
+        }
+    
+        const claimsPrincipal: ClaimsPrincipal = {
+            userID: result.payload.sub as string,
+            scope,
+        };
+    
+        if (claimsPrincipal.scope.indexOf('orders') === -1) {
+            throw new OrderServiceError(403, 'authorization_error', 'The token has insufficient scope')
+        }
+    
+        response.locals.claims = claimsPrincipal;
         next();
 
     } catch (e: any) {
@@ -43,43 +72,6 @@ export async function authorizeHttpRequest(request: express.Request, response: e
             sendClientResponse(error, response);
         }
     }
-}
-
-/*
- * Do JWT validation and create a claims principal
- */
-async function authorize(accessToken: string): Promise<ClaimsPrincipal> {
-
-    const options = {
-        algorithms: [oauthConfiguration.algorithm],
-        issuer: oauthConfiguration.issuer,
-        audience: oauthConfiguration.audience,
-    };
-
-    // Do standard JWT validation
-    let result: JWTVerifyResult;
-    try {
-        result = await jwtVerify(accessToken, remoteJWKSet, options);
-    } catch (e: any) {
-        throw new OrderServiceError(401, 'authentication_error', 'Missing, invalid or expired access token', e)
-    }
-
-    // Check for the required scope
-    const scope = (result.payload.scope as string).split(' ');
-    if (scope.indexOf(oauthConfiguration.scope) === -1) {
-        throw new OrderServiceError(403, 'insufficient_scope', 'The access token has insufficient scope');
-    }
-
-    const claimsPrincipal: ClaimsPrincipal = {
-        userID: result.payload.sub as string,
-        scope,
-    };
-
-    if (claimsPrincipal.scope.indexOf('orders') === -1) {
-        throw new OrderServiceError(403, 'authorization_error', 'The token has insufficient scope')
-    }
-
-    return claimsPrincipal;
 }
 
 /*

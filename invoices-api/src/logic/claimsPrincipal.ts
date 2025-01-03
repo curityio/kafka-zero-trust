@@ -4,6 +4,5 @@
 export interface ClaimsPrincipal {
     userID: string;
     scope: string[];
-    eventID?: string;
     transactionID?: string;
 }

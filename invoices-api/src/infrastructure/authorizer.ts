@@ -1,7 +1,6 @@
 import express from 'express';
 import {createRemoteJWKSet, jwtVerify, JWTVerifyResult} from 'jose';
 import {ClaimsPrincipal} from '../logic/claimsPrincipal.js';
-import {OrderCreatedEvent} from '../logic/orderCreatedEvent.js';
 import {logError, sendClientResponse} from './exceptionHandler.js';
 import {OAuthConfiguration, oauthHttpConfiguration, oauthJobsConfiguration} from './oauthConfiguration.js';
 import {InvoiceServiceError} from './invoiceServiceError.js';
@@ -9,9 +8,9 @@ import {InvoiceServiceError} from './invoiceServiceError.js';
 const remoteJWKSet = createRemoteJWKSet(new URL(oauthHttpConfiguration.jwksEndpoint));
 
 /*
- * Do JWT validation for HTTP requests
+ * Do JWT validation for HTTP requests with normal short lived access tokens
  */
-export async function authorizeHttpRequest(request: express.Request, response: express.Response, next: express.NextFunction) {
+export async function validateHttpAccessToken(request: express.Request, response: express.Response, next: express.NextFunction) {
 
     try {
         const accessToken = readAccessToken(request.header('authorization') || '');
@@ -46,9 +45,9 @@ export async function authorizeHttpRequest(request: express.Request, response: e
 }
 
 /*
- * Do JWT validation for async jobs
+ * Do JWT validation for async jobs with long lived low privilege access tokens
  */
-export async function authorizeJobsRequest(authorizationHeader: string): Promise<ClaimsPrincipal> {
+export async function validateAsyncAccessToken(authorizationHeader: string, eventID: string): Promise<ClaimsPrincipal> {
 
     const accessToken = readAccessToken(authorizationHeader);
     const result = await validateAccessToken(accessToken, oauthJobsConfiguration);
@@ -59,13 +58,16 @@ export async function authorizeJobsRequest(authorizationHeader: string): Promise
     }
 
     if (!result.payload.event_id || !result.payload.transaction_id) {
-        throw new InvoiceServiceError(403, 'insufficient_claims', 'The access token does not have the required claims');
+        throw new InvoiceServiceError(403, 'insufficient_scope', 'The access token does not have the required claims');
+    }
+
+    if (result.payload.event_id !== eventID) {
+        throw new InvoiceServiceError(403, 'invalid_message', 'The event message does not match the event ID in the access token');
     }
 
     return {
         userID: result.payload.sub as string,
         scope,
-        eventID: result.payload.event_id as string,
         transactionID: result.payload.transaction_id as string,
     };
 }
@@ -101,14 +103,4 @@ function readAccessToken(authorizationHeader: string): string {
     }
 
     return '';
-}
-
-/*
- * The access token can only be used for the current event message
- */
-export function authorizeInvoiceJob(event: OrderCreatedEvent, claims: ClaimsPrincipal) {
-
-    if (claims.eventID != event.eventID) {
-        throw new InvoiceServiceError(403, 'invalid_message', 'The event message has invalid data');
-    }
 }

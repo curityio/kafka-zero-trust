@@ -1,6 +1,6 @@
 import Kafka from 'node-rdkafka';
-import {authorizeInvoiceJob, authorizeJobsRequest} from './authorizer.js';
-import {createInvoiceJob} from '../logic/invoicingService.js';
+import {validateAsyncAccessToken} from './authorizer.js';
+import {createInvoice} from '../logic/invoicingService.js';
 import {logError} from './exceptionHandler.js';
 import {InvoiceServiceError} from './invoiceServiceError.js';
 
@@ -35,15 +35,15 @@ export async function startMessageBroker(): Promise<void> {
 
                 try {
 
+                    const orderEvent = JSON.parse(message.value.toString());
+
                     // Get the authorization header from the Kafka message and validate the access token
                     const key = 'Authorization';
                     const authorizationHeader = message.headers?.find((h) => h[key])?.[key]?.toString() || '';
-                    const claims = await authorizeJobsRequest(authorizationHeader);
+                    const claims = await validateAsyncAccessToken(authorizationHeader, orderEvent.eventID);
 
-                    // Implement business authorization and then process the order event to create an invoice
-                    const orderEvent = JSON.parse(message.value.toString());
-                    authorizeInvoiceJob(orderEvent, claims);
-                    createInvoiceJob(orderEvent, claims);
+                    // Then do the business work to create the invoice
+                    createInvoice(orderEvent, claims);
 
                 } catch (e: any) {
 

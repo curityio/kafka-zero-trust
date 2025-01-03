@@ -1,7 +1,7 @@
 import express from 'express';
 import Kafka from 'node-rdkafka';
 import {createOrderTransaction, getOrderTransactions, publishOrderCreated} from '../logic/ordersService.js';
-import {authorizeHttpRequest, readAccessToken} from './authorizer.js';
+import {readAccessToken, validateAccessToken} from './authorizer.js';
 import {logError, sendClientResponse} from './exceptionHandler.js';
 import {OrderServiceError} from './orderServiceError.js';
 
@@ -11,7 +11,7 @@ import {OrderServiceError} from './orderServiceError.js';
 export function startHttpServer(producer: Kafka.Producer) {
 
     const app = express();
-    app.use('*', authorizeHttpRequest);
+    app.use('*', validateAccessToken);
     app.use('*', express.json());
     app.set('etag', false);
 
