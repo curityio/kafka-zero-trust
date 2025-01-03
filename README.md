@@ -103,12 +103,11 @@ The Orders API then calculates prices and saves the transaction in its own data 
 ```
 
 The Orders API then performs a token exchange and publishes an `OrderCreated` event with the following structure.\
-The long lived access token (which also identifies the user) is sent in the event message's headers:
+A long lived access token that contains the `userID` and `transactionID` is included in the event message's headers:
 
 ```json
 {
   "eventID": "e80be47d-7282-4f3c-898a-709ca5393aa5",
-  "transactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
   "utcTime": "2025-01-02T10:23:56.258Z",
   "items": [
     {

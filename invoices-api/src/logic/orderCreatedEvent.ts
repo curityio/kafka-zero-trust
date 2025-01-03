@@ -5,7 +5,6 @@ import {OrderCreatedEventItem} from './orderCreatedEventItem.js';
  */
 export interface OrderCreatedEvent {
     eventID: string;
-    transactionID: string;
     utcTime: number;
     items: OrderCreatedEventItem[];
 }

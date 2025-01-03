@@ -39,7 +39,6 @@ export async function publishOrderCreated(orderTransaction: OrderTransaction, ac
 
     const orderCreatedEvent = {
         eventID,
-        transactionID: orderTransaction.transactionID,
         utcTime: orderTransaction.utcTime,
         items: orderTransaction.items,
     } as OrderCreatedEvent;

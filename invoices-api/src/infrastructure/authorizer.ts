@@ -104,11 +104,11 @@ function readAccessToken(authorizationHeader: string): string {
 }
 
 /*
- * The access token can only be used for the current event message and transaction ID
+ * The access token can only be used for the current event message
  */
 export function authorizeInvoiceJob(event: OrderCreatedEvent, claims: ClaimsPrincipal) {
 
-    if (claims.eventID != event.eventID || claims.transactionID !== event.transactionID) {
+    if (claims.eventID != event.eventID) {
         throw new InvoiceServiceError(403, 'invalid_message', 'The event message has invalid data');
     }
 }
