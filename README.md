@@ -173,7 +173,7 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 
 The Invoices API then receives the following JWT access token payload.\
 The audience of `jobs.example.com` and the `trigger_invoicing` are only accepted at messaging endpoints.\
-The access token is bound to a precise event message and a precise order transaction.
+The access token is bound to a precise event message and transaction to reduce token privileges.
 
 ```json
 {
