@@ -352,12 +352,6 @@
                 <capabilities>
                   <oauth-token-exchange/>
                 </capabilities>
-                <properties>
-                  <property>
-                    <key>custom_token_exchange</key>
-                    <value>true</value>
-                  </property>
-                </properties>
               </client>
             </config-backed>
           </client-store>
