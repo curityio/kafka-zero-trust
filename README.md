@@ -70,29 +70,20 @@ The Invoices API and Apache Kafka run inside the cluster.
 
 ## Data and Identity Flow
 
-The client application sends an example order such as the following to the Orders API.\
-This request includes an access token that is verified in the standard way:
-
-```json
-{
-  "items":
-  [
-    {
-      "itemID": 3,
-      "quantity": 3
-    }
-  ]
-}
-```
-
-The Orders API then calculates prices and saves the transaction in its own data as follows:
+The client application sends an example order request to the Orders API.\
+The Orders API calculates prices and saves the transaction in its own data as follows:
 
 ```json
 {
   "transactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
   "userID": "demouser",
-  "utcTime": "2025-01-02T10:23:56.258Z",
+  "utcTime": "2025-01-06T09:01:12.405Z",
   "items": [
+    {
+      "itemID": 1,
+      "quantity": 1,
+      "price": 100
+    },
     {
       "itemID": 3,
       "quantity": 3,
@@ -111,6 +102,11 @@ A long lived access token that contains the `userID` and `transactionID` is incl
   "utcTime": "2025-01-02T10:23:56.258Z",
   "items": [
     {
+      "itemID": 1,
+      "quantity": 1,
+      "price": 100
+    },
+    {
       "itemID": 3,
       "quantity": 3,
       "price": 100
@@ -124,11 +120,11 @@ The Invoices API then saves the transaction in its own data in the following for
 
 ```json
 {
-  "invoiceID": "de4cf62a-5229-4349-9cb8-6b143d7e3e27",
-  "transactionID": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
+  "invoiceID": "43f99a41-f50b-443d-813f-3f5eee21851b",
+  "transactionID": "0d2e8437-d4e3-40e1-8d6e-a6e17d2c04c7",
   "userID": "demouser",
-  "utcTime": "2025-01-02T10:24:11.786Z",
-  "amount": 300
+  "utcTime": "2025-01-06T09:01:13.686Z",
+  "amount": 400
 }
 ```
 
@@ -139,23 +135,22 @@ The audience and scope allows the token to be sent to the Orders API.
 
 ```json
 {
-  "jti": "2038fb12-8089-4ebb-bca7-efdd179adc72",
-  "delegationId": "e39a700d-3f3d-469e-a72f-aa02d55d5d54",
-  "exp": 1657215870,
-  "nbf": 1657215570,
+  "jti": "3ed02b8d-503d-46f1-bffa-e38d30a4c9d3",
+  "delegationId": "9dd15191-9441-4056-9e56-52b7ad116b18",
+  "exp": 1736154372,
+  "nbf": 1736154072,
   "scope": "openid profile orders",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
   "sub": "demouser",
   "aud": "api.example.com",
-  "iat": 1657215570,
+  "iat": 1736154072,
   "purpose": "access_token"
 }
 ```
 
 The Orders API makes a token exchange request with the original access token.\
-The Orders API upscopes the token to get a `trigger_invoicing` access token, with limited invoicing privileges.\
-Secure values like user and transaction IDs are sent in the access token to keep them verifiable and auditable.\
-Custom properties for the transaction ID and event ID are included in the requeet.
+The Orders API upscopes the token to get a long lived access token with a lifetime of 1 week.\
+The token has limited invoicing privileges, sufficient to resume asynchronous processing:
 
 ```text
 POST http://localhost:8443/oauth/v2/oauth-token
@@ -177,18 +172,18 @@ The access token is bound to a precise event message and transaction to reduce t
 
 ```json
 {
-  "jti": "afa3d2b3-3b97-4a0a-9e31-ad8e69aac9ba",
-  "delegationId": "e39a700d-3f3d-469e-a72f-aa02d55d5d54",
-  "exp": 1688751570,
-  "nbf": 1657215570,
+  "jti": "14c4ac0c-7806-401b-b6db-94ae1b6f8d4a",
+  "delegationId": "9dd15191-9441-4056-9e56-52b7ad116b18",
+  "exp": 1736758872,
+  "nbf": 1736154072,
   "scope": "trigger_invoicing",
   "iss": "http://localhost:8443/oauth/v2/oauth-anonymous",
   "sub": "demouser",
   "aud": "jobs.example.com",
-  "iat": 1657215570,
+  "iat": 1736154072,
   "purpose": "access_token",
-  "transaction_id": "6b69df74-339f-416b-84bb-f1f4f32d8f1a",
-  "event_id": "e80be47d-7282-4f3c-898a-709ca5393aa5"
+  "transaction_id": "0d2e8437-d4e3-40e1-8d6e-a6e17d2c04c7",
+  "event_id": "5a704593-6f1f-45e4-886a-e37fe5848dc7"
 }
 ```
 
