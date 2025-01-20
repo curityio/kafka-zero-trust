@@ -15,7 +15,7 @@ The user facing app calls an Orders API which publishes an event to a message br
 An Invoices API then consumes the event and makes additional security checks before processing the data.\
 The following diagram illustrates the components involved and the key behaviors:
 
-![Components](./doc/components.svg)
+![Components](./doc/end-to-end-flow.svg)
 
 ## Prerequisites
 
