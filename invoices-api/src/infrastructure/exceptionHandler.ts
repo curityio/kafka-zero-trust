@@ -1,12 +1,12 @@
 import express from 'express';
-import {PaymentServiceError} from './paymentServiceError';
+import {InvoiceServiceError} from './invoiceServiceError.js';
 
 /*
  * Basic API error logging
  */
-export function logError(error: PaymentServiceError) {
+export function logError(error: InvoiceServiceError) {
 
-    let data = `Payment Service Error: ${error.getStatus()}, ${error.getCode()}, ${error.message}`;
+    let data = `Invoices Service Error: ${error.getStatus()}, ${error.getCode()}, ${error.message}`;
     if (error.getCause()) {
         data += `, ${error.getCause()}`;
     }
@@ -17,7 +17,7 @@ export function logError(error: PaymentServiceError) {
 /*
  * Return an error to the client
  */
-export function sendClientResponse(error: PaymentServiceError, response: express.Response) {
+export function sendClientResponse(error: InvoiceServiceError, response: express.Response) {
 
     response.setHeader('Content-Type', 'application/json');
     if (error.getStatus() === 401) {

@@ -1,7 +1,6 @@
 import Http from 'http';
 import fetch from 'node-fetch'
-import Opener from 'opener';
-import urlparse from 'url-parse'
+import open from 'open';
 import {generateHash, generateRandomString} from './cryptoUtils';
 
 /*
@@ -12,8 +11,8 @@ const authorizationEndpoint = `${identityServerBaseUrl}/oauth-authorize`;
 const tokenEndpoint = `${identityServerBaseUrl}/oauth-token`;
 const clientId = 'console-client';
 const loopbackPort = 3003;
-const redirectUri = `http://localhost:${loopbackPort}`;
-const scope = 'openid profile orders trigger_payments'
+const redirectUri = `http://127.0.0.1:${loopbackPort}`;
+const scope = 'openid profile orders'
 
 /*
  * Do a code flow login to authenticate and get a user level access token
@@ -43,7 +42,8 @@ export async function login(): Promise<string> {
                 try {
 
                     // Swap the code for tokens
-                    const accessToken = await redeemCodeForAccessToken(request.url!, state, codeVerifier);
+                    const requestUrl = new URL(request.url || '', `http://${request.headers.host}`);
+                    const accessToken = await redeemCodeForAccessToken(requestUrl, state, codeVerifier);
                     resolve(accessToken);
 
                 } catch (e: any) {
@@ -57,7 +57,7 @@ export async function login(): Promise<string> {
         server.listen(loopbackPort);
         
         // Open the system browser to begin authentication
-        Opener(authorizationUrl);
+        open(authorizationUrl);
     });
 }
 
@@ -70,17 +70,18 @@ function buildAuthorizationUrl(state: string, codeChallenge: string): string {
     url += `?client_id=${encodeURIComponent(clientId)}`;
     url += `&redirect_uri=${encodeURIComponent(redirectUri)}`;
     url += '&response_type=code';
-    url += `&scope=${scope}`;
+    url += `&scope=${encodeURIComponent(scope)}`;
     url += `&state=${encodeURIComponent(state)}`;
     url += `&code_challenge=${encodeURIComponent(codeChallenge)}`;
     url += '&code_challenge_method=S256';
+    url += '&prompt=login';
     return url;
 }
 
 /*
  * Swap the code for tokens using PKCE and return the access token
  */
-async function redeemCodeForAccessToken(responseUrl: string, requestState: string, codeVerifier: string): Promise<string> {
+async function redeemCodeForAccessToken(responseUrl: URL, requestState: string, codeVerifier: string): Promise<string> {
 
     const [code, responseState] = getLoginResult(responseUrl);
     if (responseState !== requestState) {
@@ -107,25 +108,27 @@ async function redeemCodeForAccessToken(responseUrl: string, requestState: strin
         throw new Error(`Problem encountered redeeming the code for tokens: ${response.status}, ${details}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as any;
     return data.access_token;
 }
 
 /*
  * Get the code and state from the authorization response URL
  */
-function getLoginResult(responseUrl: string): [string, string] {
+function getLoginResult(responseUrl: URL): [string, string] {
 
-    const urlData = urlparse(responseUrl, true)
-    if (urlData.query && urlData.query.error) {
+    const args = new URLSearchParams(responseUrl.search);
+    const errorCode = args.get('error') || '';
+    if (errorCode) {
         
-        const error = urlData.query.error;
-        const error_description = urlData.query.error_description || '';
-        throw new Error(`Problem encountered during authorization: ${error}, ${error_description}`);
+        const error_description = args.get('error_description') || '';
+        throw new Error(`Problem encountered during authorization: ${errorCode}, ${error_description}`);
     }
     
-    if (urlData.query && urlData.query.code && urlData.query.state) {
-        return [urlData.query.code, urlData.query.state];
+    const code = args.get('code') || '';
+    const state = args.get('state') || '';
+    if (code && state) {
+        return [code, state];
     }
 
     throw new Error('An unrecognized response was returned to the console client');

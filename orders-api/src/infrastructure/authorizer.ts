@@ -2,10 +2,10 @@ import express from 'express';
 
 import {createRemoteJWKSet, jwtVerify, JWTVerifyResult} from 'jose';
 import fetch from 'node-fetch'
-import {ClaimsPrincipal} from '../logic/claimsPrincipal';
-import {logError, sendClientResponse} from './exceptionHandler';
-import {oauthConfiguration} from './oauthConfiguration';
-import {OrderServiceError} from './orderServiceError';
+import {ClaimsPrincipal} from '../logic/claimsPrincipal.js';
+import {logError, sendClientResponse} from './exceptionHandler.js';
+import {oauthConfiguration} from './oauthConfiguration.js';
+import {OrderServiceError} from './orderServiceError.js';
 
 const remoteJWKSet = createRemoteJWKSet(new URL(oauthConfiguration.jwksEndpoint));
 
@@ -24,15 +24,44 @@ export function readAccessToken(request: express.Request): string {
 
     return '';
 }
-
 /*
  * Do JWT validation for HTTP requests
  */
-export async function authorizeHttpRequest(request: express.Request, response: express.Response, next: express.NextFunction) {
+export async function validateAccessToken(request: express.Request, response: express.Response, next: express.NextFunction) {
 
     try {
         const accessToken = readAccessToken(request);
-        response.locals.claims = await authorize(accessToken);
+        
+        const options = {
+            algorithms: [oauthConfiguration.algorithm],
+            issuer: oauthConfiguration.issuer,
+            audience: oauthConfiguration.audience,
+        };
+    
+        // Do standard JWT validation
+        let result: JWTVerifyResult;
+        try {
+            result = await jwtVerify(accessToken, remoteJWKSet, options);
+        } catch (e: any) {
+            throw new OrderServiceError(401, 'authentication_error', 'Missing, invalid or expired access token', e)
+        }
+    
+        // Check for the required scope
+        const scope = (result.payload.scope as string).split(' ');
+        if (scope.indexOf(oauthConfiguration.scope) === -1) {
+            throw new OrderServiceError(403, 'insufficient_scope', 'The access token has insufficient scope');
+        }
+    
+        const claimsPrincipal: ClaimsPrincipal = {
+            userID: result.payload.sub as string,
+            scope,
+        };
+    
+        if (claimsPrincipal.scope.indexOf('orders') === -1) {
+            throw new OrderServiceError(403, 'authorization_error', 'The token has insufficient scope')
+        }
+    
+        response.locals.claims = claimsPrincipal;
         next();
 
     } catch (e: any) {
@@ -46,49 +75,22 @@ export async function authorizeHttpRequest(request: express.Request, response: e
 }
 
 /*
- * Do JWT validation and create a claims principal
- */
-async function authorize(accessToken: string): Promise<ClaimsPrincipal> {
-
-    const options = {
-        algorithms: [oauthConfiguration.algorithm],
-        issuer: oauthConfiguration.issuer,
-        audience: oauthConfiguration.audience,
-    };
-    
-    let result: JWTVerifyResult;
-    try {
-        result = await jwtVerify(accessToken, remoteJWKSet, options);
-    } catch (e: any) {
-        throw new OrderServiceError(401, 'authentication_error', 'Missing, invalid or expired access token', e)
-    }
-
-    const claimsPrincipal: ClaimsPrincipal = {
-        userID: result.payload.sub as string,
-        scope: (result.payload.scope as string).split(' '),
-    }
-
-    if (claimsPrincipal.scope.indexOf('orders') === -1) {
-        throw new OrderServiceError(403, 'authorization_error', 'The token has insufficient scope')
-    }
-
-    return claimsPrincipal;
-}
-
-/*
  * Do a token exchange to get a reduced scope access token to include in the event published to the message broker
  */
-export async function tokenExchange(accessToken: string, orderTransactionID: string, eventPayloadHash: string): Promise<string> {
+export async function tokenExchange(accessToken: string, eventID: string, transactionID: string): Promise<string> {
 
-    let body = 'grant_type=https://curity.se/grant/accesstoken';
+    // Supply standard token exchange parameters from RFC 8693
+    let body = 'grant_type=urn:ietf:params:oauth:grant-type:token-exchange';
     body += `&client_id=${oauthConfiguration.clientID}`;
     body += `&client_secret=${oauthConfiguration.clientSecret}`;
-    body += `&scope=trigger_payments`;
-    body += `&token=${accessToken}`;
-    
-    // These custom fields are include in the reduced scope token via a token procedure
-    body += `&order_transaction_id=${orderTransactionID}`;
-    body += `&event_payload_hash=${eventPayloadHash}`;
+    body += `&subject_token=${accessToken}`;
+    body += '&subject_token_type=urn:ietf:params:oauth:token-type:access_token';
+    body += '&audience=jobs.example.com';
+    body += '&scope=trigger_invoicing';
+
+    // Send custom fields to bind the exchanged token to exact identifiers to reduce token privileges
+    body += `&event_id=${eventID}`;
+    body += `&transaction_id=${transactionID}`;
 
     try {
     

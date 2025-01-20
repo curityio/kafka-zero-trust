@@ -1,4 +1,4 @@
-import {OrderCreatedEventItem} from './orderCreatedEventItem';
+import {OrderCreatedEventItem} from './orderCreatedEventItem.js';
 
 /*
  * Simulate money calculation
@@ -6,6 +6,6 @@ import {OrderCreatedEventItem} from './orderCreatedEventItem';
 export function calculateAmount(items: OrderCreatedEventItem[]): number {
 
     let total = 0;
-    items.forEach(i => total += i.price)
+    items.forEach(i => total += i.quantity * i.price)
     return total;
 }

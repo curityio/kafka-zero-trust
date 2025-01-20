@@ -1,12 +1,11 @@
-import {Guid} from 'guid-typescript';
-import hash from 'js-sha256';
+import {randomUUID} from 'crypto';
 import Kafka from 'node-rdkafka';
-import {tokenExchange} from '../infrastructure/authorizer';
-import {ClaimsPrincipal} from './claimsPrincipal';
-import {OrderCreatedEvent} from './orderCreatedEvent';
-import {OrderItem} from './orderItem';
-import {OrderTransaction} from './orderTransaction';
-import {calculatePrices} from './priceCalculator';
+import {tokenExchange} from '../infrastructure/authorizer.js';
+import {ClaimsPrincipal} from './claimsPrincipal.js';
+import {OrderCreatedEvent} from './orderCreatedEvent.js';
+import {OrderItem} from './orderItem.js';
+import {OrderTransaction} from './orderTransaction.js';
+import {calculatePrices} from './priceCalculator.js';
 
 const orderTransactions: OrderTransaction[] = [];
 
@@ -17,17 +16,14 @@ export function createOrderTransaction(items: OrderItem[], claims: ClaimsPrincip
 
     calculatePrices(items);
     const orderTransaction = {
-        orderTransactionID: Guid.create().toString(),
+        transactionID: randomUUID(),
         userID: claims.userID,
         utcTime: new Date(),
         items,
     };
 
-
-    // Show some debug output to visualize how data flows in a verifiable way
-    console.log('Creating Order Transaction ...');
-    console.log(JSON.stringify(orderTransaction, null, 2));
-
+    console.debug('Creating Order Transaction ...');
+    console.debug(JSON.stringify(orderTransaction, null, 2));
     orderTransactions.push(orderTransaction);
     return orderTransaction;
 }
@@ -37,26 +33,31 @@ export function createOrderTransaction(items: OrderItem[], claims: ClaimsPrincip
  */
 export async function publishOrderCreated(orderTransaction: OrderTransaction, accessToken: string, producer: Kafka.Producer) {
 
-    const payload = {
-        orderTransactionID: orderTransaction.orderTransactionID,
-        userID: orderTransaction.userID,
-        utcTime: orderTransaction.utcTime.getTime(),
-        items: orderTransaction.items,
-    };
-
-    console.log('Performing Token Exchange ...');
-
-    const eventPayloadHash = hash.sha256(JSON.stringify(payload));
-    const longLivedReducedScopeAccessToken = await tokenExchange(accessToken, orderTransaction.orderTransactionID, eventPayloadHash);
+    console.debug('Performing Token Exchange ...');
+    const eventID = randomUUID();
+    const longLivedReducedScopeAccessToken = await tokenExchange(accessToken, eventID, orderTransaction.transactionID);
 
     const orderCreatedEvent = {
-        accessToken: longLivedReducedScopeAccessToken,
-        payload,
+        eventID,
+        utcTime: orderTransaction.utcTime,
+        items: orderTransaction.items,
     } as OrderCreatedEvent;
 
-    console.log('Publishing OrderCreated Event ...');
+    console.debug('Publishing OrderCreated Event ...');
+    console.debug(JSON.stringify(orderCreatedEvent, null, 2));
 
-    producer.produce('OrderCreated', null, Buffer.from(JSON.stringify(orderCreatedEvent)));
+    const partition = null;
+    const message = Buffer.from(JSON.stringify(orderCreatedEvent));
+    const key = null;
+    const timestamp = null;
+    const opaque = null;
+    const headers: Kafka.MessageHeader[] = [
+        {
+            'Authorization': `Bearer ${longLivedReducedScopeAccessToken}`,
+        }
+    ];
+    
+    producer.produce('OrderCreated', partition, message, key, timestamp, opaque, headers);
 }
 
 /*

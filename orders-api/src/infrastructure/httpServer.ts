@@ -1,9 +1,9 @@
 import express from 'express';
 import Kafka from 'node-rdkafka';
-import {createOrderTransaction, getOrderTransactions, publishOrderCreated} from '../logic/ordersService';
-import {authorizeHttpRequest, readAccessToken} from './authorizer';
-import {logError, sendClientResponse} from './exceptionHandler';
-import {OrderServiceError} from './orderServiceError';
+import {createOrderTransaction, getOrderTransactions, publishOrderCreated} from '../logic/ordersService.js';
+import {readAccessToken, validateAccessToken} from './authorizer.js';
+import {logError, sendClientResponse} from './exceptionHandler.js';
+import {OrderServiceError} from './orderServiceError.js';
 
 /*
  * Set up the REST API
@@ -11,7 +11,7 @@ import {OrderServiceError} from './orderServiceError';
 export function startHttpServer(producer: Kafka.Producer) {
 
     const app = express();
-    app.use('*', authorizeHttpRequest);
+    app.use('*', validateAccessToken);
     app.use('*', express.json());
     app.set('etag', false);
 
@@ -35,10 +35,8 @@ export function startHttpServer(producer: Kafka.Producer) {
         try {
         
             const orderTransaction = createOrderTransaction(request.body.items, response.locals.claims);
-
             await publishOrderCreated(orderTransaction, readAccessToken(request), producer);
-            console.log('Orders API published an OrderCreated event ...');
-
+            
             response.setHeader('content-type', 'application/json');
             response.status(201).send(JSON.stringify(orderTransaction));
 

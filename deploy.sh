@@ -12,9 +12,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 #
 # Default to running APIs locally, with Kafka always running in Docker
 #
-if [ "$1" == 'DEPLOYED' ]; then
-  PROFILE='DEPLOYED'
-else
+if [ "$PROFILE" != 'DEPLOYED' ]; then
   PROFILE='LOCAL'
 fi
 
@@ -55,19 +53,56 @@ docker compose --profile $PROFILE --project-name kakfa up --detach --remove-orph
 #
 echo 'Waiting for Kafka to come online ...'
 KAFKA_CONTAINER_ID=$(docker container ls | grep cp-server | awk '{print $1}')
-docker exec -it $KAFKA_CONTAINER_ID sh -c 'kafka-topics --list --zookeeper zookeeper:2181'
+docker exec -it $KAFKA_CONTAINER_ID sh -c 'kafka-topics --list --bootstrap-server kafka:9092' 1>/dev/null
 RESULT=$?
 while [ "$RESULT" -ne '0' ]; do
     sleep 2
     KAFKA_CONTAINER_ID=$(docker container ls | grep cp-server | awk '{print $1}')
-    docker exec -it $KAFKA_CONTAINER_ID sh -c 'kafka-topics --list --zookeeper zookeeper:2181'
+    docker exec -it $KAFKA_CONTAINER_ID sh -c 'kafka-topics --list --bootstrap-server kafka:9092' 1>/dev/null
     RESULT=$?
 done
 
 #
-# Run local APIs if required
+# If APIs are deployed there is nothing left to do
 #
-if [ "$PROFILE" == 'LOCAL' ]; then
-    open -a Terminal orders-api/run.sh
-    open -a Terminal payments-api/run.sh
+if [ "$PROFILE" == 'DEPLOYED' ]; then
+  exit 0;
+fi
+
+#
+# Otherwise get the platform
+#
+case "$(uname -s)" in
+
+  Darwin)
+    PLATFORM="MACOS"
+ 	;;
+
+  MINGW64*)
+    PLATFORM="WINDOWS"
+	;;
+
+  Linux)
+    PLATFORM="LINUX"
+	;;
+esac
+
+#
+# Then run local APIs
+#
+if [ "$PLATFORM" == 'MACOS' ]; then
+
+  open -a Terminal ./orders-api/run.sh
+  open -a Terminal ./invoices-api/run.sh
+
+elif [ "$PLATFORM" == 'WINDOWS' ]; then
+  
+  GIT_BASH="C:\Program Files\Git\git-bash.exe"
+  "$GIT_BASH" -c ./orders-api/run.sh &
+  "$GIT_BASH" -c ./invoices-api/run.sh &
+
+elif [ "$PLATFORM" == 'LINUX' ]; then
+
+  gnome-terminal -- ./orders-api/run.sh
+  gnome-terminal -- ./invoices-api/run.sh
 fi

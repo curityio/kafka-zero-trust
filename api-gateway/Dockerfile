@@ -1,9 +1,11 @@
-FROM kong:2.8.1-alpine
+FROM kong/kong:3.8-ubuntu
 
-# Fetch from luarocks, and set git options if required
 USER root
+RUN apt-get update
+RUN apt-get install -y git unzip
+
 RUN git config --global url."https://".insteadOf git:// && \
     git config --global advice.detachedHead false && \
-    luarocks install kong-phantom-token
+    luarocks install kong-phantom-token 2.0.0
 
 USER kong
