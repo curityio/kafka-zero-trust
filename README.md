@@ -1,5 +1,8 @@
 # Kafka Zero Trust
 
+[![Quality](https://img.shields.io/badge/quality-demo-red)](https://curity.io/resources/code-examples/status/)
+[![Availability](https://img.shields.io/badge/availability-source-blue)](https://curity.io/resources/code-examples/status/)
+
 A project to demonstrate event based messaging between APIs with zero trust:
 
 - Publishing APIs include a long lived reduced privilege access token in event messages.
